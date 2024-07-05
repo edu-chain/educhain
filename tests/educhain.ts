@@ -5,6 +5,75 @@ import { LAMPORTS_PER_SOL, Keypair, PublicKey, SystemProgram } from "@solana/web
 import { expect } from 'chai';
 
 describe("educhain", () => {
+
+  async function create_school(name: String, wallet: Keypair) : Promise<PublicKey> {
+    const [da_school] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("school"),
+        wallet.publicKey.toBuffer()
+      ], program.programId);
+
+    let tx = await program.methods.initializeSchool(name)
+      .accounts({ 
+        school: da_school,
+        signer: wallet.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([wallet])
+      .rpc();
+    return da_school;
+  }
+
+  async function create_course(name: String, da_school: PublicKey, course_id:Number, wallet: Keypair) : Promise<PublicKey> {
+    const [da_course] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("course"),
+        da_school.toBuffer(),
+        new BN(course_id).toArrayLike(Buffer, "le", 8)
+      ], program.programId);
+
+    let tx = await program.methods.createCourse(name)
+      .accounts({ 
+        school: da_school,
+        course: da_course,
+        signer: wallet.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([wallet])
+      .rpc();
+    return da_course;
+  } 
+
+  async function create_session(da_school: PublicKey, course_id:Number, session_id:Number, wallet: Keypair) : Promise<PublicKey> {
+
+    const [da_course] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("course"),
+        da_school.toBuffer(),
+        new BN(course_id).toArrayLike(Buffer, "le", 8)
+      ], program.programId);
+
+    const [da_session] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("session"),
+        da_school.toBuffer(),
+        new BN(course_id).toArrayLike(Buffer, "le", 8), 
+        new BN(session_id).toArrayLike(Buffer, "le", 8),
+      ], program.programId);
+
+    let tx = await program.methods.createSession(new BN(1), new BN(2)) // TODO: set correct start/end 
+      .accounts({ 
+        school: da_school,
+        course: da_course,
+        session: da_session,
+        signer: wallet.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([wallet])
+      .rpc();
+    return da_session;
+  } 
+
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -21,119 +90,75 @@ describe("educhain", () => {
     tx = await program.provider.connection.requestAirdrop(wallet2.publicKey, 1000 * LAMPORTS_PER_SOL);
     await program.provider.connection.confirmTransaction(tx);
 
-    // Create school1, linked to wallet1
-    const [da_school1] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("school"),
-        wallet1.publicKey.toBuffer()
-      ], program.programId);
-
-    tx = await program.methods.initializeSchool("Alyra")
-      .accounts({ 
-        school: da_school1,
-        signer: wallet1.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet1])
-      .rpc();
-
-    // Create school2, linked to wallet2
-    const [da_school2] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("school"),
-        wallet2.publicKey.toBuffer()
-      ], program.programId);
-
-    tx = await program.methods.initializeSchool("IUT")
-      .accounts({ 
-        school: da_school2,
-        signer: wallet2.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet2])
-      .rpc();
+    // Create some schools
+    let da_school1 = await create_school("Ecole 1", wallet1);
+    let da_school2 = await create_school("Ecole 2", wallet2);
 
     // Create course1, linked to school1
-    const [da_course1] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("course"),
-        da_school1.toBuffer(),
-        new BN(1).toArrayLike(Buffer, "le", 8)		// course id
-      ], program.programId);
-
-    tx = await program.methods.createCourse("Dev")
-      .accounts({ 
-        school: da_school1,
-        course: da_course1,
-        signer: wallet1.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet1])
-      .rpc();
+    let da_course1 = await create_course("Dev", da_school1, 1, wallet1);
 
     // Create course2, linked to school1
-    const [da_course2] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("course"),
-        da_school1.toBuffer(),
-        new BN(2).toArrayLike(Buffer, "le", 8)		// course id
-      ], program.programId);
+    let da_course2 = await create_course("Defi", da_school1, 2, wallet1);
 
-    tx = await program.methods.createCourse("Defi")
-      .accounts({ 
-        school: da_school1,
-        course: da_course2,
-        signer: wallet1.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet1])
-      .rpc();
-
-    // Try to create course3, linked to school1, using wallet2
-    const [da_course3] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("course"),
-        da_school1.toBuffer(),
-        new BN(3).toArrayLike(Buffer, "le", 8)		// course id
-      ], program.programId);
-
+    // Try to create a course, linked to school2, using wallet1
     try {
-      tx = await program.methods.createCourse("Wrong")
-        .accounts({ 
-          school: da_school1,
-          course: da_course3,
-          signer: wallet2.publicKey,
-          systemProgram: SystemProgram.programId
-        })
-        .signers([wallet2])
-        .rpc();
+      await create_course("Wrong", da_school2, 1, wallet1);
     } catch (err) {
       expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
     }
 
-    // Create session1 linked to course2 (school1)
-    const [da_session1] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("session"),
-        da_school1.toBuffer(),
-        new BN(2).toArrayLike(Buffer, "le", 8), // course id
-        new BN(1).toArrayLike(Buffer, "le", 8), // session id
-      ], program.programId);
+    // Create course3, linked to school2, using wallet2
+    let da_course3 = await create_course("Consultant", da_school2, 1, wallet2);
 
-    tx = await program.methods.createSession(new BN(1), new BN(2) /* TODO: set correct start/end */)
-      .accounts({ 
-        school: da_school1,
-        course: da_course2,
-        session: da_session1,
-        signer: wallet1.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet1])
-      .rpc();
+    // Create some sessions linked to course2 (school1)
+    let da_session1 = await create_session(da_school1, 2, 1, wallet1);
+    let da_session2 = await create_session(da_school1, 2, 2, wallet1);
+    let da_session3 = await create_session(da_school1, 2, 3, wallet1);
+    let da_session4 = await create_session(da_school1, 2, 4, wallet1);
+
+    // Try to create a session linked to course3, using wallet1
+    try {
+      await create_session(da_school1, 1, 1, wallet1);
+    } catch (err) {
+      expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
+    }
+
+    // Try to create a session linked to course3, using wallet2, but with school1
+    try {
+      await create_session(da_school1, 1, 1, wallet2);
+    } catch (err) {
+      expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
+    }
+
+    // Create a session linked to course3, using wallet2, on school 2
+    let da_session5 = await create_session(da_school2, 1 /* course id */, 1 /* session id */, wallet2);
 
     // Checks
-    // let schools = await program.account.schoolDataAccount.all();
-    // let courses = await program.account.courseDataAccount.all();
-    
+    let schools_wallet1 = await program.account.schoolDataAccount.all([{
+      memcmp: {
+        offset: 8, // offset to owner field
+        bytes: wallet1.publicKey.toBase58(),
+      }
+    }]);
+    let school1 = schools_wallet1[0];
+    expect(school1.account.coursesCounter.eq(new anchor.BN(2))).to.be.true; // TODO: Why .account object ?
+
+    /* TODO: Filter does not work
+    let course2 = await program.account.courseDataAccount.all([
+      {
+        memcmp: {
+          offset: 8, // offset to id field
+          bytes: new BN(2).toArrayLike(Buffer, "le", 8)
+        } 
+      },
+      {
+        memcmp: {
+          offset: 8+8, // offset to school field
+          bytes: school1.publicKey
+        } 
+      },
+    ]);
+    console.log(course2);
+    */
   });
 });

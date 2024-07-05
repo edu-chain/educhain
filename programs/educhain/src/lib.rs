@@ -18,10 +18,11 @@ pub mod educhain {
         Ok(())
     }
 
-    pub fn create_course(ctx: Context<CreateCourse>) -> Result<()> {
+    pub fn create_course(ctx: Context<CreateCourse>, name: String) -> Result<()> {
         ctx.accounts.school.courses_counter += 1;
 
         ctx.accounts.course.id = ctx.accounts.school.courses_counter; 
+        ctx.accounts.course.name = name;
         ctx.accounts.course.school = ctx.accounts.school.key();
         // ctx.accounts.course.admins = TODO
         ctx.accounts.course.sessions_counter = 0;
@@ -207,6 +208,9 @@ pub struct SchoolDataAccount {
 pub struct CourseDataAccount {
     pub id: u64,		// Numeric identifier of the course in the school
     pub school: Pubkey,		// A course is linked to a school
+
+    #[max_len(32)]
+    pub name: String,
 
     #[max_len(MAX_ADMINS_PER_COURSE)]
     pub admins: Vec<Pubkey>,	// Wallets allowed to administrate this course

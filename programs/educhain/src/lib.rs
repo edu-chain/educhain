@@ -41,7 +41,19 @@ pub mod educhain {
         Ok(())
     }
 
+    pub fn student_subscription(ctx: Context<StudentSubscription>) -> Result<()> {
+        // TODO: We should make this call "payable" in order to let the student pay his course
+
+        // TODO: check course state: If the course has start -> not possible to join
+
+        ctx.accounts.subscription.course = ctx.accounts.course.key();
+
+        Ok(())
+    }
+
     pub fn create_group(ctx: Context<CreateGroup>, students: Vec<Pubkey>) -> Result<()> {
+        // TODO: Check: Only a course admin can create a group
+
         ctx.accounts.course.groups_counter += 1;
 
         ctx.accounts.group.id = ctx.accounts.course.groups_counter;
@@ -149,6 +161,37 @@ pub struct CreateSession<'info> {
 }
 
 #[derive(Accounts)]
+pub struct StudentSubscription<'info> {
+    #[account(
+        seeds = [
+          b"course", 
+          course.school.as_ref(), 
+          &course.id.to_le_bytes()
+        ],
+        bump
+    )]
+    pub course: Account<'info, CourseDataAccount>,
+
+   #[account(
+        init,
+        payer = signer,
+        space = 8 + StudentSubscriptionDataAccount::INIT_SPACE,
+        seeds = [
+          b"subscription", 
+          course.key().as_ref(), 
+          signer.key().as_ref(),
+        ],
+        bump
+    )]
+    pub subscription: Account<'info, StudentSubscriptionDataAccount>,
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    pub system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
 pub struct CreateGroup<'info> {
    #[account(
         seeds = [
@@ -231,16 +274,6 @@ pub struct SessionDataAccount {
 
 #[account]
 #[derive(InitSpace)]
-pub struct GroupDataAccount {
-   pub id: u64,			// Numeric identifier of the group in th course
-   pub course: Pubkey,		// A group is linked to a course
-
-   #[max_len(MAX_STUDENTS_PER_GROUP)]
-   pub students: Vec<Pubkey>
-}
-
-#[account]
-#[derive(InitSpace)]
 pub struct StudentSubscriptionDataAccount {
    // Note: A student can subscribe to multiple courses
    // One StudentSubscription Data-account per course subscription.
@@ -249,6 +282,16 @@ pub struct StudentSubscriptionDataAccount {
 
    pub active: bool 
 } 
+
+#[account]
+#[derive(InitSpace)]
+pub struct GroupDataAccount {
+   pub id: u64,			// Numeric identifier of the group in th course
+   pub course: Pubkey,		// A group is linked to a course
+
+   #[max_len(MAX_STUDENTS_PER_GROUP)]
+   pub students: Vec<Pubkey>
+}
 
 #[account]
 #[derive(InitSpace)]

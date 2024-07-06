@@ -3,9 +3,19 @@ import { BN, Program } from "@coral-xyz/anchor";
 import { Educhain } from "../target/types/educhain";
 import { LAMPORTS_PER_SOL, Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
 import { expect } from 'chai';
+import bs58 from 'bs58';
+
+// TODO: Split into multiple individual tests
 
 describe("educhain", () => {
 
+  async function create_wallet_with_sol() : Promise<Keypair> {
+    const wallet = new Keypair()
+    let tx = await program.provider.connection.requestAirdrop(wallet.publicKey, 1000 * LAMPORTS_PER_SOL);
+    await program.provider.connection.confirmTransaction(tx);
+    return wallet
+  }
+ 
   async function create_school(name: String, wallet: Keypair) : Promise<PublicKey> {
     const [da_school] = PublicKey.findProgramAddressSync(
       [
@@ -74,6 +84,26 @@ describe("educhain", () => {
     return da_session;
   } 
 
+  async function student_subscription(da_course: PublicKey, wallet: Keypair) : Promise<PublicKey> {
+    const [da_subscription] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("subscription"),
+        da_course.toBuffer(),
+        wallet.publicKey.toBuffer()
+      ], program.programId);
+
+    let tx = await program.methods.studentSubscription()
+      .accounts({ 
+        course: da_course,
+        subscription: da_subscription,
+        signer: wallet.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([wallet])
+      .rpc();
+    return da_subscription;
+  };
+
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -82,13 +112,8 @@ describe("educhain", () => {
   it("Some tests", async () => {
 
     // Create 2 wallet2 with some SOL
-    const wallet1 = new Keypair()
-    let tx = await program.provider.connection.requestAirdrop(wallet1.publicKey, 1000 * LAMPORTS_PER_SOL);
-    await program.provider.connection.confirmTransaction(tx);
-
-    const wallet2 = new Keypair()
-    tx = await program.provider.connection.requestAirdrop(wallet2.publicKey, 1000 * LAMPORTS_PER_SOL);
-    await program.provider.connection.confirmTransaction(tx);
+    const wallet1 = await create_wallet_with_sol();
+    const wallet2 = await create_wallet_with_sol();
 
     // Create some schools
     let da_school1 = await create_school("Ecole 1", wallet1);
@@ -103,7 +128,9 @@ describe("educhain", () => {
     // Try to create a course, linked to school2, using wallet1
     try {
       await create_course("Wrong", da_school2, 1, wallet1);
+      expect.fail("Should fail");
     } catch (err) {
+      expect(err).to.have.property("error");
       expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
     }
 
@@ -118,15 +145,19 @@ describe("educhain", () => {
 
     // Try to create a session linked to course3, using wallet1
     try {
-      await create_session(da_school1, 1, 1, wallet1);
+      await create_session(da_school2, 1 /* course id */, 1 /* session id */, wallet1);
+      expect.fail("Should fail");
     } catch (err) {
+      expect(err).to.have.property("error");
       expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
     }
 
     // Try to create a session linked to course3, using wallet2, but with school1
     try {
       await create_session(da_school1, 1, 1, wallet2);
+      expect.fail("Should fail");
     } catch (err) {
+      expect(err).to.have.property("error");
       expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
     }
 
@@ -143,22 +174,49 @@ describe("educhain", () => {
     let school1 = schools_wallet1[0];
     expect(school1.account.coursesCounter.eq(new anchor.BN(2))).to.be.true; // TODO: Why .account object ?
 
-    /* TODO: Filter does not work
-    let course2 = await program.account.courseDataAccount.all([
-      {
-        memcmp: {
-          offset: 8, // offset to id field
-          bytes: new BN(2).toArrayLike(Buffer, "le", 8)
-        } 
-      },
+    // Create some students
+    const student1 = await create_wallet_with_sol();
+    const student2 = await create_wallet_with_sol();
+    const student3 = await create_wallet_with_sol();
+
+    // student1 and student2 wants to join course1
+    const sub1 = await student_subscription(da_course1, student1);
+    const sub2 = await student_subscription(da_course1, student2);
+
+    // student2 also wants to join course2
+    const sub3 = await student_subscription(da_course2, student2);
+
+    // student3 on course2
+    const sub4 = await student_subscription(da_course2, student3);
+
+    // student1 tries to subscribe again to course1
+    try {
+      await student_subscription(da_course1, student1);
+      expect.fail("Should fail");
+    } catch (err) {
+      // TODO: no error code in this case ? Find a better way...
+      expect(err).to.have.property("transactionLogs");
+      expect(err.transactionLogs.some(log => log.includes("already in use"))).to.be.true;
+    }
+
+    // Check course2 of school1
+    let ret = await program.account.courseDataAccount.all([
+      // course.school==school1 && course.id==2
       {
         memcmp: {
           offset: 8+8, // offset to school field
           bytes: school1.publicKey
         } 
       },
+      {
+        memcmp: {
+          offset: 8, // offset to id field
+          bytes: bs58.encode((new BN(2)).toBuffer('le', 8))
+        } 
+      },
     ]);
-    console.log(course2);
-    */
+    expect(ret.length).to.equal(1);
+    let check_course2_of_school1 = ret[0].account;
+    expect(check_course2_of_school1.sessionsCounter.eq(new anchor.BN(4))).to.be.true;
   });
 });

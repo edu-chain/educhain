@@ -1,0 +1,44 @@
+@layer reset, base, tokens, recipes, utilities;
+
+
+@layer base {
+  html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  *, *::before, *::after {
+    box-sizing: inherit;
+  }
+
+  /* Responsive font size */
+  html {
+    font-size: 16px;
+  }
+
+  @media screen and (min-width: 768px) {
+    html {
+      font-size: 18px;
+    }
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  /* Container for content */
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+}

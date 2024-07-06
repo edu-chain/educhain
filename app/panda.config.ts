@@ -1,18 +1,57 @@
-import { defineConfig } from "@pandacss/dev";
+import { defineConfig, defineGlobalStyles } from '@pandacss/dev'
+import { createPreset } from '@park-ui/panda-preset'
+
+const globalCss = defineGlobalStyles({
+  "html, body": {
+    margin: 0,
+    padding: 0,
+    fontFamily: "Inter, sans-serif",
+    color: "var(--colors-text)",
+    backgroundColor: "var(--colors-background)",
+  },
+  "*": {
+    boxSizing: "border-box",
+  },
+  a: {
+    textDecoration: "none",
+    color: "inherit",
+  },
+  button: {
+    fontFamily: "inherit",
+  },
+});
+
 
 export default defineConfig({
-  // Whether to use css reset
   preflight: true,
-  presets: ['@pandacss/preset-base', '@park-ui/panda-preset'],
-
-  include: ["./app/**/*.{js,jsx,ts,tsx}"],
+  presets: [
+    '@pandacss/preset-base',
+    createPreset({
+      accentColor: 'neutral',
+      grayColor: 'sage',
+      borderRadius: 'md',
+    }),
+  ],
+  include: ['./src/**/*.{js,jsx,ts,tsx}', './pages/**/*.{js,jsx,ts,tsx}'],
   exclude: [],
 
-  // Useful for theme customization
   theme: {
-    extend: {},
+    extend: {
+    tokens: {
+      colors: {
+        text: { value: "#333" },
+        background: { value: "#fff" },
+        primary: { value: "#0070f3" },
+        secondary: { value: "#1c1c1e" },
+      },
+      fonts: {
+        body: { value: "Inter, sans-serif" },
+      },
+    },
   },
-
-  // The output directory for your css system
-  outdir: "styled-system",
-});
+},
+  globalCss,
+  
+  jsxFramework: 'react',
+  outdir: 'styled-system',
+})

@@ -41,18 +41,30 @@ pub mod educhain {
         Ok(())
     }
 
-    pub fn student_subscription(ctx: Context<StudentSubscription>) -> Result<()> {
+    pub fn student_subscription(ctx: Context<StudentSubscription>, name: String) -> Result<()> {
         // TODO: We should make this call "payable" in order to let the student pay his course
 
         // TODO: check course state: If the course has start -> not possible to join
 
         ctx.accounts.subscription.course = ctx.accounts.course.key();
+        ctx.accounts.subscription.name = name;
 
         Ok(())
     }
 
-    pub fn create_group(ctx: Context<CreateGroup>, students: Vec<Pubkey>) -> Result<()> {
+    pub fn student_attendance(ctx: Context<StudentAttendance>) -> Result<()> {
+        // TODO: Manual check: Student should be subscribe to the course
+
+        ctx.accounts.attendance.session = ctx.accounts.session.key();
+        ctx.accounts.attendance.student = ctx.accounts.signer.key();
+
+        Ok(())
+    }
+
+    pub fn create_group(ctx: Context<CreateGroup> /* , students: Vec<Pubkey> */ ) -> Result<()> {
         // TODO: Check: Only a course admin can create a group
+        // TODO: Check size of group
+        // TODO: Check if student is not member of another group -> maybe add a group field in student subscription ?
 
         ctx.accounts.course.groups_counter += 1;
 
@@ -192,21 +204,11 @@ pub struct StudentSubscription<'info> {
 }
 
 #[derive(Accounts)]
-pub struct CreateGroup<'info> {
-   #[account(
-        seeds = [
-          b"school", 
-          signer.key().as_ref()
-        ],
-        bump
-    )]
-    pub school: Account<'info, SchoolDataAccount>,
-
+pub struct StudentAttendance<'info> {
     #[account(
-        mut,
         seeds = [
           b"course", 
-          school.key().as_ref(), 
+          course.school.as_ref(), 
           &course.id.to_le_bytes()
         ],
         bump
@@ -214,13 +216,77 @@ pub struct CreateGroup<'info> {
     pub course: Account<'info, CourseDataAccount>,
 
    #[account(
+        seeds = [
+          b"subscription", 
+          subscription.course.as_ref(), 
+          signer.key().as_ref(),
+        ],
+        bump
+    )]
+    pub subscription: Account<'info, StudentSubscriptionDataAccount>,
+
+    #[account(
+        seeds = [
+          b"session",
+          course.school.as_ref(),
+          &course.id.to_le_bytes(),
+          &session.id.to_le_bytes(),
+        ], 
+        bump
+    )]
+    pub session: Account<'info, SessionDataAccount>,
+
+    #[account(
         init,
         payer = signer,
-        space = 8 + CourseDataAccount::INIT_SPACE,
+        space = 8 + StudentAttendanceProofDataAccount::INIT_SPACE,
+        seeds = [
+          b"attendance", 
+          session.key().as_ref(), 
+          signer.key().as_ref(),
+        ],
+        bump
+    )]
+    pub attendance: Account<'info, StudentAttendanceProofDataAccount>,
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
+
+    pub system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
+pub struct CreateGroup<'info> {
+/*
+   #[account(
+        seeds = [
+          b"school", 
+          signer.key().as_ref()
+        ],
+        bump
+    )]
+    pub school2: Account<'info, SchoolDataAccount>,
+*/
+
+    #[account(
+        mut,
+        seeds = [
+          b"course", 
+          course.school.as_ref(), 
+          &course.id.to_le_bytes()
+        ],
+        bump
+    )]
+    pub course: Account<'info, CourseDataAccount>,
+
+    #[account(
+        init,
+        payer = signer,
+        space = 8 + GroupDataAccount::INIT_SPACE,
         seeds = [
           b"group", 
-          school.key().as_ref(), 
-          &course.id.to_le_bytes(), 
+          course.school.as_ref(), 
+          &course.id.to_le_bytes(),
           &(course.groups_counter+1).to_le_bytes()
         ],
         bump
@@ -280,8 +346,21 @@ pub struct StudentSubscriptionDataAccount {
 
    pub course: Pubkey,		// A subscription is linked to a course
 
+   #[max_len(32)]
+   pub name: String,		// Student can give different informations on his multiple subscriptions
+   // TODO: Interest centers, email, discord, ...
+
    pub active: bool 
 } 
+
+#[account]
+#[derive(InitSpace)]
+pub struct StudentAttendanceProofDataAccount {
+   // Each time a student attends a session, he sign an attendance sheet.
+   // This data-account represents an attendance sheet entry for one student and one session
+   pub student: Pubkey,
+   pub session: Pubkey
+}
 
 #[account]
 #[derive(InitSpace)]
@@ -291,15 +370,6 @@ pub struct GroupDataAccount {
 
    #[max_len(MAX_STUDENTS_PER_GROUP)]
    pub students: Vec<Pubkey>
-}
-
-#[account]
-#[derive(InitSpace)]
-pub struct StudentAttendanceProofDataAccount {
-   // Each time a student attends a session, he sign an attendance sheet.
-   // This data-account represents an attendance sheet entry for one student and one session
-   pub student: Pubkey,
-   pub session: Pubkey
 }
 
 #[account]

@@ -84,7 +84,7 @@ describe("educhain", () => {
     return da_session;
   } 
 
-  async function student_subscription(da_course: PublicKey, wallet: Keypair) : Promise<PublicKey> {
+  async function student_subscription(da_course: PublicKey, wallet: Keypair, name) : Promise<PublicKey> {
     const [da_subscription] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("subscription"),
@@ -92,7 +92,7 @@ describe("educhain", () => {
         wallet.publicKey.toBuffer()
       ], program.programId);
 
-    let tx = await program.methods.studentSubscription()
+    let tx = await program.methods.studentSubscription(name)
       .accounts({ 
         course: da_course,
         subscription: da_subscription,
@@ -102,6 +102,56 @@ describe("educhain", () => {
       .signers([wallet])
       .rpc();
     return da_subscription;
+  };
+
+  async function student_attendance(da_course: PublicKey, da_subscription: PublicKey, da_session: PublicKey, wallet: Keypair) : Promise<PublicKey> {
+    const [da_attendance] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("attendance"),
+        da_session.toBuffer(),
+        wallet.publicKey.toBuffer()
+      ], program.programId);
+
+    let tx = await program.methods.studentAttendance()
+      .accounts({ 
+        course: da_course,
+        subscription: da_subscription,	// Important because we need to check if the subscription exists
+        session: da_session,
+        attendance: da_attendance,
+        signer: wallet.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([wallet])
+      .rpc();
+    return da_attendance;
+  };
+
+  async function create_group(da_school: PublicKey, course_id: Number, group_id:Number, students: PublicKey[], wallet: Keypair) : Promise<PublicKey> {
+    const [da_course] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("course"),
+        da_school.toBuffer(),
+        new BN(course_id).toArrayLike(Buffer, "le", 8)
+      ], program.programId);
+
+    const [da_group] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("group"),
+        da_school.toBuffer(),
+        new BN(course_id).toArrayLike(Buffer, "le", 8),
+        new BN(group_id).toArrayLike(Buffer, "le", 8),
+      ], program.programId);
+
+    let tx = await program.methods.createGroup(/* students */)
+      .accounts({ 
+        course: da_course,
+        group: da_group,
+        signer: wallet.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([wallet])
+      .rpc();
+    return da_group;
   };
 
   // Configure the client to use the local cluster.
@@ -178,20 +228,29 @@ describe("educhain", () => {
     const student1 = await create_wallet_with_sol();
     const student2 = await create_wallet_with_sol();
     const student3 = await create_wallet_with_sol();
+    const student4 = await create_wallet_with_sol();
+    const student5 = await create_wallet_with_sol();
+    const student6 = await create_wallet_with_sol();
+    const student7 = await create_wallet_with_sol();
 
-    // student1 and student2 wants to join course1
-    const sub1 = await student_subscription(da_course1, student1);
-    const sub2 = await student_subscription(da_course1, student2);
+    // student1, student2, student7 wants to join course1
+    const sub_student1_course1 = await student_subscription(da_course1, student1, "Bob");
+    const sub_student2_course1 = await student_subscription(da_course1, student2, "Alice");
+    const sub_student7_course1 = await student_subscription(da_course1, student7, "John");
 
-    // student2 also wants to join course2
-    const sub3 = await student_subscription(da_course2, student2);
+    // student2, student7 also wants to join course2
+    const sub_student2_course2 = await student_subscription(da_course2, student2, "Alice");
+    const sub_student7_course2 = await student_subscription(da_course2, student7, "John");
 
-    // student3 on course2
-    const sub4 = await student_subscription(da_course2, student3);
+    // student3,4,5,6 on course2
+    const sub_student3_course2 = await student_subscription(da_course2, student3, "Paul");
+    const sub_student4_course2 = await student_subscription(da_course2, student4, "Jessie");
+    const sub_student5_course2 = await student_subscription(da_course2, student5, "Jack");
+    const sub_student6_course2 = await student_subscription(da_course2, student6, "Steve");
 
     // student1 tries to subscribe again to course1
     try {
-      await student_subscription(da_course1, student1);
+      await student_subscription(da_course1, student1, "Bob");
       expect.fail("Should fail");
     } catch (err) {
       // TODO: no error code in this case ? Find a better way...
@@ -216,7 +275,109 @@ describe("educhain", () => {
       },
     ]);
     expect(ret.length).to.equal(1);
-    let check_course2_of_school1 = ret[0].account;
-    expect(check_course2_of_school1.sessionsCounter.eq(new anchor.BN(4))).to.be.true;
+    let course2_of_school1 = ret[0];
+    expect(course2_of_school1.account.id.eq(new anchor.BN(2))).to.be.true;
+    expect(course2_of_school1.account.name).to.equal("Defi");
+    expect(course2_of_school1.account.sessionsCounter.eq(new anchor.BN(4))).to.be.true;
+
+    // Get sudents of school1 > course2
+    ret = await program.account.studentSubscriptionDataAccount.all([
+      // subscription.course==course2_of_school1
+      {
+        memcmp: {
+          offset: 8, // offset to course field
+          bytes: course2_of_school1.publicKey
+        } 
+      }
+    ]);
+    expect(ret.length).to.equal(6);
+    expect(ret.some(obj => obj.account.name === "Bob")).to.be.false;
+    expect(ret.some(obj => obj.account.name === "Alice")).to.be.true;
+    expect(ret.some(obj => obj.account.name === "Paul")).to.be.true;
+
+    // Get sudents of school1 > course2
+    ret = await program.account.studentSubscriptionDataAccount.all([
+      // subscription.course==course2_of_school1
+      {
+        memcmp: {
+          offset: 8, // offset to course field
+          bytes: course2_of_school1.publicKey
+        } 
+      }
+    ]);
+    expect(ret.length).to.equal(6);
+    expect(ret.some(obj => obj.account.name === "Bob")).to.be.false;
+
+    /*
+    // Check course1 of school 1:
+    ret = await program.account.courseDataAccount.all([
+      // course.school==school1 && course.id==1
+      {
+        memcmp: {
+          offset: 8+8, // offset to school field
+          bytes: school1.publicKey
+        } 
+      },
+      {
+        memcmp: {
+          offset: 8, // offset to id field
+          bytes: bs58.encode((new BN(1)).toBuffer('le', 8))
+        } 
+      },
+    ]);
+    console.log(ret);
+
+    // Check session1 of course1 of school 1:
+    ret = await program.account.sessionDataAccount.all([
+      // session.course==course1 && session.id=1
+      {
+        memcmp: {
+          offset: 8+8, // offset to course field
+          bytes: ret[0].publicKey
+        } 
+      },
+      {
+        memcmp: {
+          offset: 8, // offset to id field
+          bytes: bs58.encode((new BN(1)).toBuffer('le', 8))
+        } 
+      },
+    ]);
+    console.log(ret);
+    */
+
+    // TODO: data/time management
+
+    // student3 tries to sign for student2
+    try {
+      await student_attendance(da_course2, sub_student2_course2, da_session1, student3);
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
+    }
+
+    // student2 signs the attendence sheet for session1 of course2 (school 1)
+    await student_attendance(da_course2, sub_student2_course2, da_session1, student2);
+
+    // student2 tries to sign twice the same session
+    try {
+      await student_attendance(da_course2, sub_student2_course2, da_session1, student2);
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("transactionLogs");
+      expect(err.transactionLogs.some(log => log.includes("already in use"))).to.be.true;
+    }
+
+    // student2 signs the attendence sheet for session2 of course2 (school 1)
+    await student_attendance(da_course2, sub_student2_course2, da_session2, student2);
+
+    // school admin creates a group
+    // TODO: use a course admin wallet
+    let group1 = await create_group(da_school1, 2 /* course id */, 1 /* group id */, [student2, student3], wallet1);
+
+    // Student1 wants to change group
+
+    // Student2 changes group
   });
 });

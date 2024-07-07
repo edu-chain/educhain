@@ -5,8 +5,6 @@ import { LAMPORTS_PER_SOL, Keypair, PublicKey, SystemProgram } from "@solana/web
 import { expect } from 'chai';
 import bs58 from 'bs58';
 
-// TODO: Split into multiple individual tests
-
 describe("educhain", () => {
 
   async function create_wallet_with_sol() : Promise<Keypair> {
@@ -159,23 +157,34 @@ describe("educhain", () => {
 
   const program = anchor.workspace.Educhain as Program<Educhain>;
 
-  it("Some tests", async () => {
+  // Wallets declarations
+  let wallet1: Keypair;
+  let wallet2: Keypair;
 
-    // Create 2 wallet2 with some SOL
-    const wallet1 = await create_wallet_with_sol();
-    const wallet2 = await create_wallet_with_sol();
+  // Data-accounts declarations
+  let da_school1, da_school2: PublicKey;
+  let da_course1, da_course2, da_course3: PublicKey;
+  let da_session1, da_session2, da_session3, da_session4, da_session5: PublicKey;
+  let student1, student2, student3, student4, student5, student6, student7: PublicKey;
+  let sub_student1_course1, sub_student2_course1, sub_student7_course1, sub_student2_course2, sub_student7_course2, sub_student3_course2, sub_student4_course2, sub_student5_course2, sub_student6_course2: PublicKey;  
+  
+  it("Create 2 schools, each with its own wallet", async () => {
+    wallet1 = await create_wallet_with_sol();
+    wallet2 = await create_wallet_with_sol();
 
-    // Create some schools
-    let da_school1 = await create_school("Ecole 1", wallet1);
-    let da_school2 = await create_school("Ecole 2", wallet2);
+    da_school1 = await create_school("Ecole 1", wallet1);
+    da_school2 = await create_school("Ecole 2", wallet2);
+  });
 
-    // Create course1, linked to school1
-    let da_course1 = await create_course("Dev", da_school1, 1, wallet1);
+  it("Create course1, linked to school1", async () => {
+    da_course1 = await create_course("Dev", da_school1, 1 /* course id */, wallet1);
+  });
 
-    // Create course2, linked to school1
-    let da_course2 = await create_course("Defi", da_school1, 2, wallet1);
+  it("Create course2, linked to school1", async () => {
+    da_course2 = await create_course("Defi", da_school1, 2, wallet1);
+  });
 
-    // Try to create a course, linked to school2, using wallet1
+  it("Try to create a course, linked to school2, using wallet1 (should fail)", async () => {
     try {
       await create_course("Wrong", da_school2, 1, wallet1);
       expect.fail("Should fail");
@@ -183,17 +192,20 @@ describe("educhain", () => {
       expect(err).to.have.property("error");
       expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
     }
+  });
 
-    // Create course3, linked to school2, using wallet2
-    let da_course3 = await create_course("Consultant", da_school2, 1, wallet2);
+  it("Create course3, linked to school2, using wallet2", async () => {
+    da_course3 = await create_course("Consultant", da_school2, 1 /* course id in school 2 */, wallet2);
+  });
 
-    // Create some sessions linked to course2 (school1)
-    let da_session1 = await create_session(da_school1, 2, 1, wallet1);
-    let da_session2 = await create_session(da_school1, 2, 2, wallet1);
-    let da_session3 = await create_session(da_school1, 2, 3, wallet1);
-    let da_session4 = await create_session(da_school1, 2, 4, wallet1);
+  it("Create some sessions linked to course2 (school1)", async () => {
+    da_session1 = await create_session(da_school1, 2 /* course id */, 1 /* session id */, wallet1);
+    da_session2 = await create_session(da_school1, 2, 2, wallet1);
+    da_session3 = await create_session(da_school1, 2, 3, wallet1);
+    da_session4 = await create_session(da_school1, 2, 4, wallet1);
+  });
 
-    // Try to create a session linked to course3, using wallet1
+  it("Try to create a session linked to course3, using wallet1 (should fail)", async () => {
     try {
       await create_session(da_school2, 1 /* course id */, 1 /* session id */, wallet1);
       expect.fail("Should fail");
@@ -201,8 +213,9 @@ describe("educhain", () => {
       expect(err).to.have.property("error");
       expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
     }
+  });
 
-    // Try to create a session linked to course3, using wallet2, but with school1
+  it("Try to create a session linked to course3, using wallet2, but with school1 (should fail)", async () => {
     try {
       await create_session(da_school1, 1, 1, wallet2);
       expect.fail("Should fail");
@@ -210,45 +223,52 @@ describe("educhain", () => {
       expect(err).to.have.property("error");
       expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
     }
+  });
 
-    // Create a session linked to course3, using wallet2, on school 2
-    let da_session5 = await create_session(da_school2, 1 /* course id */, 1 /* session id */, wallet2);
+  it("Create a session linked to course3, using wallet2, on school 2", async () => {
+    da_session5 = await create_session(da_school2, 1 /* course id */, 1 /* session id */, wallet2);
+  });
 
-    // Checks
+  it("Check school1", async () => {
     let schools_wallet1 = await program.account.schoolDataAccount.all([{
       memcmp: {
         offset: 8, // offset to owner field
         bytes: wallet1.publicKey.toBase58(),
       }
     }]);
-    let school1 = schools_wallet1[0];
-    expect(school1.account.coursesCounter.eq(new anchor.BN(2))).to.be.true; // TODO: Why .account object ?
+    let check_school1 = schools_wallet1[0];
+    expect(check_school1.account.coursesCounter.eq(new anchor.BN(2))).to.be.true; // TODO: Why .account object ?
+  });
 
-    // Create some students
-    const student1 = await create_wallet_with_sol();
-    const student2 = await create_wallet_with_sol();
-    const student3 = await create_wallet_with_sol();
-    const student4 = await create_wallet_with_sol();
-    const student5 = await create_wallet_with_sol();
-    const student6 = await create_wallet_with_sol();
-    const student7 = await create_wallet_with_sol();
+  it("Create some students", async () => {
+    student1 = await create_wallet_with_sol();
+    student2 = await create_wallet_with_sol();
+    student3 = await create_wallet_with_sol();
+    student4 = await create_wallet_with_sol();
+    student5 = await create_wallet_with_sol();
+    student6 = await create_wallet_with_sol();
+    student7 = await create_wallet_with_sol();
+  });
 
-    // student1, student2, student7 wants to join course1
-    const sub_student1_course1 = await student_subscription(da_course1, student1, "Bob");
-    const sub_student2_course1 = await student_subscription(da_course1, student2, "Alice");
-    const sub_student7_course1 = await student_subscription(da_course1, student7, "John");
+  it("student1, student2, student7 wants to join course1", async () => {
+    sub_student1_course1 = await student_subscription(da_course1, student1, "Bob");
+    sub_student2_course1 = await student_subscription(da_course1, student2, "Alice");
+    sub_student7_course1 = await student_subscription(da_course1, student7, "John");
+  });
 
-    // student2, student7 also wants to join course2
-    const sub_student2_course2 = await student_subscription(da_course2, student2, "Alice");
-    const sub_student7_course2 = await student_subscription(da_course2, student7, "John");
+  it("student2, student7 also wants to join course2", async () => {
+    sub_student2_course2 = await student_subscription(da_course2, student2, "Alice");
+    sub_student7_course2 = await student_subscription(da_course2, student7, "John");
+  });
 
-    // student3,4,5,6 on course2
-    const sub_student3_course2 = await student_subscription(da_course2, student3, "Paul");
-    const sub_student4_course2 = await student_subscription(da_course2, student4, "Jessie");
-    const sub_student5_course2 = await student_subscription(da_course2, student5, "Jack");
-    const sub_student6_course2 = await student_subscription(da_course2, student6, "Steve");
+  it("student3,4,5,6 on course2", async () => {
+    sub_student3_course2 = await student_subscription(da_course2, student3, "Paul");
+    sub_student4_course2 = await student_subscription(da_course2, student4, "Jessie");
+    sub_student5_course2 = await student_subscription(da_course2, student5, "Jack");
+    sub_student6_course2 = await student_subscription(da_course2, student6, "Steve");
+  });
 
-    // student1 tries to subscribe again to course1
+  it("student1 tries to subscribe again to course1 (should fail)", async () => {
     try {
       await student_subscription(da_course1, student1, "Bob");
       expect.fail("Should fail");
@@ -257,14 +277,15 @@ describe("educhain", () => {
       expect(err).to.have.property("transactionLogs");
       expect(err.transactionLogs.some(log => log.includes("already in use"))).to.be.true;
     }
+  });
 
-    // Check course2 of school1
+  it("Check course2 of school1", async () => {
     let ret = await program.account.courseDataAccount.all([
       // course.school==school1 && course.id==2
       {
         memcmp: {
           offset: 8+8, // offset to school field
-          bytes: school1.publicKey
+          bytes: da_school1
         } 
       },
       {
@@ -280,7 +301,7 @@ describe("educhain", () => {
     expect(course2_of_school1.account.name).to.equal("Defi");
     expect(course2_of_school1.account.sessionsCounter.eq(new anchor.BN(4))).to.be.true;
 
-    // Get sudents of school1 > course2
+    // Check students of this course
     ret = await program.account.studentSubscriptionDataAccount.all([
       // subscription.course==course2_of_school1
       {
@@ -294,21 +315,10 @@ describe("educhain", () => {
     expect(ret.some(obj => obj.account.name === "Bob")).to.be.false;
     expect(ret.some(obj => obj.account.name === "Alice")).to.be.true;
     expect(ret.some(obj => obj.account.name === "Paul")).to.be.true;
+  });
 
-    // Get sudents of school1 > course2
-    ret = await program.account.studentSubscriptionDataAccount.all([
-      // subscription.course==course2_of_school1
-      {
-        memcmp: {
-          offset: 8, // offset to course field
-          bytes: course2_of_school1.publicKey
-        } 
-      }
-    ]);
-    expect(ret.length).to.equal(6);
-    expect(ret.some(obj => obj.account.name === "Bob")).to.be.false;
-
-    /*
+  /*
+  it("TODO", async () => {
     // Check course1 of school 1:
     ret = await program.account.courseDataAccount.all([
       // course.school==school1 && course.id==1
@@ -344,7 +354,10 @@ describe("educhain", () => {
       },
     ]);
     console.log(ret);
-    */
+  });
+  */
+
+  it("student3 tries to sign for student2 (should fail)", async () => {
 
     // TODO: data/time management
 
@@ -356,11 +369,13 @@ describe("educhain", () => {
       expect(err).to.have.property("error");
       expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
     }
+  });
 
-    // student2 signs the attendence sheet for session1 of course2 (school 1)
+  it("student2 signs the attendence sheet for session1 of course2 (school 1)", async () => {
     await student_attendance(da_course2, sub_student2_course2, da_session1, student2);
+  });
 
-    // student2 tries to sign twice the same session
+  it("student2 tries to sign twice the same session (should fail)", async () => {
     try {
       await student_attendance(da_course2, sub_student2_course2, da_session1, student2);
       expect.fail("Should fail");
@@ -368,16 +383,25 @@ describe("educhain", () => {
       expect(err).to.have.property("transactionLogs");
       expect(err.transactionLogs.some(log => log.includes("already in use"))).to.be.true;
     }
+  });
 
-    // student2 signs the attendence sheet for session2 of course2 (school 1)
+  it("student2 signs the attendence sheet for session2 of course2 (school 1)", async () => {
     await student_attendance(da_course2, sub_student2_course2, da_session2, student2);
+  });
 
-    // school admin creates a group
+  it("school1 admin creates a group", async () => {
     // TODO: use a course admin wallet
     let group1 = await create_group(da_school1, 2 /* course id */, 1 /* group id */, [student2, student3], wallet1);
+  });
 
+  /*
+  it("TODO", async () => {
     // Student1 wants to change group
 
+  });
+
+  it("TODO", async () => {
     // Student2 changes group
   });
+  */
 });

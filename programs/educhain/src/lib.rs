@@ -1,8 +1,8 @@
 use anchor_lang::prelude::*;
 use std::vec::Vec;
 
-const MAX_ADMINS_PER_COURSE: u8 = 10;
-const MAX_STUDENTS_PER_GROUP: u8 = 3;
+const MAX_ADMINS_PER_COURSE: usize = 2;
+const MAX_STUDENTS_PER_GROUP: usize = 3;
 
 declare_id!("3WXZzDFmMAv6z69NQZNhV2YLMMWc7khQNRfyei2VCZmi");
 
@@ -18,13 +18,15 @@ pub mod educhain {
         Ok(())
     }
 
-    pub fn create_course(ctx: Context<CreateCourse>, name: String) -> Result<()> {
+    pub fn create_course(ctx: Context<CreateCourse>, name: String, course_admins: Vec<Pubkey>) -> Result<()> {
+        require!(course_admins.len()<=MAX_ADMINS_PER_COURSE, CustomErrors::ExceedingMaximumAdmins);
+
         ctx.accounts.school.courses_counter += 1;
 
         ctx.accounts.course.id = ctx.accounts.school.courses_counter; 
         ctx.accounts.course.name = name;
         ctx.accounts.course.school = ctx.accounts.school.key();
-        // ctx.accounts.course.admins = TODO
+        ctx.accounts.course.admins = course_admins;
         ctx.accounts.course.sessions_counter = 0;
 
         Ok(())
@@ -47,30 +49,47 @@ pub mod educhain {
         // TODO: check course state: If the course has start -> not possible to join
 
         ctx.accounts.subscription.course = ctx.accounts.course.key();
+        ctx.accounts.subscription.student = ctx.accounts.signer.key();
+        ctx.accounts.subscription.group = None;
         ctx.accounts.subscription.name = name;
+        ctx.accounts.subscription.active = false; // student is inactive by default.
 
         Ok(())
     }
 
     pub fn student_attendance(ctx: Context<StudentAttendance>) -> Result<()> {
-        // TODO: Manual check: Student should be subscribe to the course
-
         ctx.accounts.attendance.session = ctx.accounts.session.key();
         ctx.accounts.attendance.student = ctx.accounts.signer.key();
 
         Ok(())
     }
 
-    pub fn create_group(ctx: Context<CreateGroup> /* , students: Vec<Pubkey> */ ) -> Result<()> {
-        // TODO: Check: Only a course admin can create a group
-        // TODO: Check size of group
-        // TODO: Check if student is not member of another group -> maybe add a group field in student subscription ?
+    pub fn create_group(ctx: Context<CreateGroup>) -> Result<()> {
+        // Only a course admin can create a group
+        require!(ctx.accounts.course.admins.contains(&ctx.accounts.signer.key()), CustomErrors::OnlyCourseAdminCanCreateGroup);
 
         ctx.accounts.course.groups_counter += 1;
 
         ctx.accounts.group.id = ctx.accounts.course.groups_counter;
         ctx.accounts.group.course = ctx.accounts.course.key();
-        // TODO ctx.students = students;
+
+        Ok(())
+    }
+
+    pub fn add_student_to_group(ctx: Context<AddStudentToGroup>) -> Result<()> {
+        // Only a course admin can add a student to a group
+        require!(ctx.accounts.course.admins.contains(&ctx.accounts.signer.key()), CustomErrors::OnlyCourseAdminCanCreateGroup);
+
+        // Check size of group
+        require!(ctx.accounts.group.students.len()<MAX_STUDENTS_PER_GROUP, CustomErrors::ExceedingMaximumGroupMembers);
+
+        // Check if student is not member of another group for this course (subscription)
+        require!(ctx.accounts.subscription.group.is_none(), CustomErrors::StudentIsMemberOfAnotherGroup);
+
+        // TODO: Can't add an inactive student to a group
+
+        ctx.accounts.group.students.push(ctx.accounts.subscription.student);
+        ctx.accounts.subscription.group = Some(ctx.accounts.group.key());
 
         Ok(())
     }
@@ -257,17 +276,6 @@ pub struct StudentAttendance<'info> {
 
 #[derive(Accounts)]
 pub struct CreateGroup<'info> {
-/*
-   #[account(
-        seeds = [
-          b"school", 
-          signer.key().as_ref()
-        ],
-        bump
-    )]
-    pub school2: Account<'info, SchoolDataAccount>,
-*/
-
     #[account(
         mut,
         seeds = [
@@ -297,6 +305,45 @@ pub struct CreateGroup<'info> {
     pub signer: Signer<'info>,
 
     pub system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
+pub struct AddStudentToGroup<'info> {
+    #[account(
+        seeds = [
+          b"course", 
+          course.school.as_ref(), 
+          &course.id.to_le_bytes()
+        ],
+        bump
+    )]
+    pub course: Account<'info, CourseDataAccount>,
+
+    #[account(
+        mut,
+        seeds = [
+          b"subscription",
+          course.key().as_ref(),
+          subscription.student.as_ref(),
+        ],
+        bump
+    )]
+    pub subscription: Account<'info, StudentSubscriptionDataAccount>,
+
+    #[account(
+        mut,
+        seeds = [
+          b"group",
+          course.school.as_ref(),
+          &course.id.to_le_bytes(),
+          &group.id.to_le_bytes()
+        ],
+        bump
+    )]
+    pub group: Account<'info, GroupDataAccount>,
+
+    #[account(mut)]
+    pub signer: Signer<'info>,
 }
 
 /* Data Accounts */
@@ -345,6 +392,9 @@ pub struct StudentSubscriptionDataAccount {
    // One StudentSubscription Data-account per course subscription.
 
    pub course: Pubkey,		// A subscription is linked to a course
+   pub student: Pubkey,		// and to a student.
+
+   pub group: Option<Pubkey>,		// storage redundancy but no alternative: We need to know the group of this student in this structure.
 
    #[max_len(32)]
    pub name: String,		// Student can give different informations on his multiple subscriptions
@@ -378,4 +428,20 @@ pub struct GroupSwapRequestDataAccount {
    pub course: Pubkey,
    pub student: Pubkey,
    pub group: Pubkey,		// Requested group
+}
+
+/* Custom errors */
+#[error_code]
+pub enum CustomErrors {
+    #[msg("Exceeding maximum admins count")]
+    ExceedingMaximumAdmins,
+
+    #[msg("Exceeding maximum group members count")]
+    ExceedingMaximumGroupMembers,
+
+    #[msg("Only a course admin can create a group")]
+    OnlyCourseAdminCanCreateGroup,
+
+    #[msg("Student is member of another group")]
+    StudentIsMemberOfAnotherGroup,
 }

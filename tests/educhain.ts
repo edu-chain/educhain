@@ -32,7 +32,7 @@ describe("educhain", () => {
     return da_school;
   }
 
-  async function create_course(name: String, da_school: PublicKey, course_id:Number, wallet: Keypair) : Promise<PublicKey> {
+  async function create_course(name: String, da_school: PublicKey, course_id:Number, course_admins: PublicKey[], wallet: Keypair) : Promise<PublicKey> {
     const [da_course] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("course"),
@@ -40,7 +40,7 @@ describe("educhain", () => {
         new BN(course_id).toArrayLike(Buffer, "le", 8)
       ], program.programId);
 
-    let tx = await program.methods.createCourse(name)
+    let tx = await program.methods.createCourse(name, course_admins)
       .accounts({ 
         school: da_school,
         course: da_course,
@@ -124,7 +124,7 @@ describe("educhain", () => {
     return da_attendance;
   };
 
-  async function create_group(da_school: PublicKey, course_id: Number, group_id:Number, students: PublicKey[], wallet: Keypair) : Promise<PublicKey> {
+  async function create_group(da_school: PublicKey, course_id: Number, group_id:Number, wallet: Keypair) : Promise<PublicKey> {
     const [da_course] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("course"),
@@ -140,7 +140,7 @@ describe("educhain", () => {
         new BN(group_id).toArrayLike(Buffer, "le", 8),
       ], program.programId);
 
-    let tx = await program.methods.createGroup(/* students */)
+    let tx = await program.methods.createGroup()
       .accounts({ 
         course: da_course,
         group: da_group,
@@ -152,14 +152,26 @@ describe("educhain", () => {
     return da_group;
   };
 
+  async function add_student_to_group(da_course: PublicKey, da_subscription: PublicKey, da_group: PubkicKey, wallet: Keypair) {
+    let tx = await program.methods.addStudentToGroup()
+      .accounts({ 
+        course: da_course,
+        subscription: da_subscription,
+        group: da_group,
+        signer: wallet.publicKey
+      })
+      .signers([wallet])
+      .rpc();
+  };
+
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.Educhain as Program<Educhain>;
 
   // Wallets declarations
-  let wallet1: Keypair;
-  let wallet2: Keypair;
+  let wallet1, wallet2: Keypair;	// owners of school1 and school2
+  let course1_admin1, course1_admin2, course2_admin1, course3_admin1: Keypair;
 
   // Data-accounts declarations
   let da_school1, da_school2: PublicKey;
@@ -167,6 +179,7 @@ describe("educhain", () => {
   let da_session1, da_session2, da_session3, da_session4, da_session5: PublicKey;
   let student1, student2, student3, student4, student5, student6, student7: PublicKey;
   let sub_student1_course1, sub_student2_course1, sub_student7_course1, sub_student2_course2, sub_student7_course2, sub_student3_course2, sub_student4_course2, sub_student5_course2, sub_student6_course2: PublicKey;  
+  let da_group1, da_group2: PublicKey;
   
   it("Create 2 schools, each with its own wallet", async () => {
     wallet1 = await create_wallet_with_sol();
@@ -177,16 +190,51 @@ describe("educhain", () => {
   });
 
   it("Create course1, linked to school1", async () => {
-    da_course1 = await create_course("Dev", da_school1, 1 /* course id */, wallet1);
+    course1_admin1 = await create_wallet_with_sol();
+    course1_admin2 = await create_wallet_with_sol();
+
+    da_course1 = await create_course(
+      "Dev", 
+      da_school1, 
+      1, // course id
+      [course1_admin1.publicKey, course1_admin2.publicKey],
+      wallet1);
+  });
+
+  it("Trying to create a course with 3 admins (should fail)", async () => {
+    let tmp_admin1 = await create_wallet_with_sol();
+    let tmp_admin2 = await create_wallet_with_sol();
+    let tmp_admin3 = await create_wallet_with_sol();
+
+    try {
+      await create_course(
+        "Wrong",
+        da_school1,
+        2,
+        [tmp_admin1.publicKey, tmp_admin2.publicKey, tmp_admin3.publicKey],
+        wallet1);
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("ExceedingMaximumAdmins");
+    }
   });
 
   it("Create course2, linked to school1", async () => {
-    da_course2 = await create_course("Defi", da_school1, 2, wallet1);
+    course2_admin1 = await create_wallet_with_sol();
+
+    da_course2 = await create_course(
+      "Defi",
+      da_school1,
+      2,
+      [course2_admin1.publicKey],
+      wallet1);
   });
 
   it("Try to create a course, linked to school2, using wallet1 (should fail)", async () => {
     try {
-      await create_course("Wrong", da_school2, 1, wallet1);
+      let tmp_admin = await create_wallet_with_sol();
+      await create_course("Wrong", da_school2, 1, [tmp_admin.publicKey], wallet1);
       expect.fail("Should fail");
     } catch (err) {
       expect(err).to.have.property("error");
@@ -195,7 +243,14 @@ describe("educhain", () => {
   });
 
   it("Create course3, linked to school2, using wallet2", async () => {
-    da_course3 = await create_course("Consultant", da_school2, 1 /* course id in school 2 */, wallet2);
+    course3_admin1 = await create_wallet_with_sol();
+
+    da_course3 = await create_course(
+      "Consultant", 
+      da_school2, 
+      1, // course id in school 2
+      [course3_admin1.publicKey],
+      wallet2);
   });
 
   it("Create some sessions linked to course2 (school1)", async () => {
@@ -318,7 +373,7 @@ describe("educhain", () => {
   });
 
   /*
-  it("TODO", async () => {
+  it("TODO - usless test ?", async () => {
     // Check course1 of school 1:
     ret = await program.account.courseDataAccount.all([
       // course.school==school1 && course.id==1
@@ -389,19 +444,116 @@ describe("educhain", () => {
     await student_attendance(da_course2, sub_student2_course2, da_session2, student2);
   });
 
-  it("school1 admin creates a group", async () => {
-    // TODO: use a course admin wallet
-    let group1 = await create_group(da_school1, 2 /* course id */, 1 /* group id */, [student2, student3], wallet1);
+  it("Trying to create a group with wrong course admin (should fail)", async () => {
+    try {
+      await create_group(
+        da_school1, 
+        2, // course id
+        1, // group id
+        course1_admin1	// This wallet is not admin on course2
+      );
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("OnlyCourseAdminCanCreateGroup");
+    }
   });
 
-  /*
-  it("TODO", async () => {
-    // Student1 wants to change group
+  it("course2 admin creates group1 in course2 with 3 students", async () => {
+    da_group1 = await create_group(
+      da_school1, 
+      2, // course id
+      1, // group id
+      course2_admin1);
 
+    await add_student_to_group(da_course2, sub_student7_course2, da_group1, course2_admin1);
+    await add_student_to_group(da_course2, sub_student3_course2, da_group1, course2_admin1);
+    await add_student_to_group(da_course2, sub_student4_course2, da_group1, course2_admin1);
   });
 
-  it("TODO", async () => {
-    // Student2 changes group
+  it("Tries to add a 4th member in group1 (should fail)", async () => {
+    try {
+      await add_student_to_group(da_course2, sub_student2_course2, da_group1, course2_admin1);
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("ExceedingMaximumGroupMembers");
+    }
   });
-  */
+
+  it("course2 admin creates group2 in course2 with 2 students", async () => {
+    da_group2 = await create_group(
+      da_school1, 
+      2, // course id
+      2, // group id
+      course2_admin1);
+
+    await add_student_to_group(da_course2, sub_student5_course2, da_group2, course2_admin1);
+    await add_student_to_group(da_course2, sub_student6_course2, da_group2, course2_admin1);
+  });
+
+  it("Tries to put student1 in group2 (should fail because student1 is not a member of course2)", async () => {
+    try {
+      await add_student_to_group(
+        da_course2, 
+        sub_student1_course1, 
+        da_group2,
+        course2_admin1);
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
+    }
+  });
+
+  it("Tries to put student4 in group2 (should fail because student4 is already member of group1)", async () => {
+    try {
+      await add_student_to_group(da_course2, sub_student4_course2, da_group2, course2_admin1);
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("StudentIsMemberOfAnotherGroup");
+    }
+  });
+
+  it("Check group1 members", async () => {
+    let ret = await program.account.groupDataAccount.all([
+      // group.course==da_course2 && group.id==1
+      {
+        memcmp: {
+          offset: 8+8, // offset to course field
+          bytes: da_course2
+        } 
+      },
+      {
+        memcmp: {
+          offset: 8, // offset to id field
+          bytes: bs58.encode((new BN(1)).toBuffer('le', 8))
+        } 
+      }
+    ]);
+    expect(ret.length).to.equal(1);
+    let students = ret[0].account.students;
+    expect(students.length).to.equal(3);
+
+    for (let student of students) {
+      const [da_subscription] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("subscription"),
+          da_course2.toBuffer(),
+          student.toBuffer()
+        ], program.programId);
+
+      ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
+      expect(ret.name==="Paul" || ret.name==="John" || ret.name==="Jessie").to.be.true;
+    }
+  });
+
+  it("student6 asks to join group1", async () => {
+     // TODO
+  });
+
+  it("student4 accepts to swap with student6", async () => {
+     // TODO
+  });
 });

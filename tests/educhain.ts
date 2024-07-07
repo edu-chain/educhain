@@ -164,6 +164,42 @@ describe("educhain", () => {
       .rpc();
   };
 
+  async function create_group_swap_request(da_course: PublicKey, da_subscription: PublicKey, da_requested_group: PublicKey, wallet: Keypair) : Promise<PublicKey> {
+    const [da_request] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("swap_request"),
+        da_course.toBuffer(),
+        da_subscription.toBuffer(),
+        wallet.publicKey.toBuffer()
+      ], program.programId);
+
+    let tx = await program.methods.groupSwapRequest()
+      .accounts({ 
+        course: da_course,
+        subscription: da_subscription,
+        requestedGroup: da_requested_group,
+        swapRequest: da_request,
+        signer: wallet.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([wallet])
+      .rpc();
+    return da_request;
+  };
+
+  async function accept_swap(da_course: PublicKey, da_swap_request: PublicKey, signer_group: PublicKey, wallet: Keypair) {
+    let tx = await program.methods.acceptGroupSwap()
+      .accounts({
+        course: da_course,
+        swapRequest: da_swap_request,
+        signer: wallet.publicKey,
+        signerGroup: signer_group,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([wallet])
+      .rpc();
+  };
+
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
@@ -179,7 +215,8 @@ describe("educhain", () => {
   let da_session1, da_session2, da_session3, da_session4, da_session5: PublicKey;
   let student1, student2, student3, student4, student5, student6, student7: PublicKey;
   let sub_student1_course1, sub_student2_course1, sub_student7_course1, sub_student2_course2, sub_student7_course2, sub_student3_course2, sub_student4_course2, sub_student5_course2, sub_student6_course2: PublicKey;  
-  let da_group1, da_group2: PublicKey;
+  let da_group1, da_group2, da_group3: PublicKey;
+  let student6_swap_request: PublicKey;
   
   it("Create 2 schools, each with its own wallet", async () => {
     wallet1 = await create_wallet_with_sol();
@@ -549,11 +586,50 @@ describe("educhain", () => {
     }
   });
 
+  it("course1 admin creates group3 in course1", async () => {
+    da_group3 = await create_group(
+      da_school1, 
+      1, // course id (in school 1)
+      1, // group id (in course)
+      course1_admin1);
+  });
+
+  it("student6 asks to join group3 (should fail because group3 is in course1)", async () => {
+    try {
+      await create_group_swap_request(da_course2, sub_student6_course2, da_group3, student6);
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
+    }
+
+    try {
+      await create_group_swap_request(da_course1, sub_student6_course2, da_group3, student6);
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
+    }
+  });
+
   it("student6 asks to join group1", async () => {
-     // TODO
+    student6_swap_request = await create_group_swap_request(da_course2, sub_student6_course2, da_group1, student6);
+  });
+
+  it("student5 also asks to join group1", async () => {
+    await create_group_swap_request(da_course2, sub_student5_course2, da_group1, student5);
   });
 
   it("student4 accepts to swap with student6", async () => {
-     // TODO
+    let swap_requests = await program.account.groupSwapRequestDataAccount.all();
+    expect(swap_requests.length).to.equal(2);
+
+    await accept_swap(da_course2, student6_swap_request, da_group1, student4);
+
+    // Check: The request should have been deleted
+    swap_requests = await program.account.groupSwapRequestDataAccount.all();
+    expect(swap_requests.length).to.equal(1);
+
+    // TODO: Check new students/groups membership
   });
 });

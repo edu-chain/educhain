@@ -5,6 +5,40 @@ import { LAMPORTS_PER_SOL, Keypair, PublicKey, SystemProgram } from "@solana/web
 import { expect } from 'chai';
 import bs58 from 'bs58';
 
+/*
+Test dataset:
+
+wallet1
+  school1
+    course1  (id=1)
+      course1_admin1
+      course1_admin2
+      student1 (Bob)
+      student2 (Alice)
+      student7 (John)
+      group3 (id=1)
+    course2  (id=2)
+      course2_admin1
+      session1 (id=1)
+      session2 (id=2)
+      session3 (id=3)
+      session4 (id=4)
+      group1 (id=1)
+        student7 (John)
+        student3 (Paul)
+        student4 (Jessie)
+      group2 (id=2)
+        student5 (Jack)
+        student6 (Steve)
+      student2 (Alice)
+
+wallet2
+  school2
+    course3 (id=1)
+      course3_admin1
+      session5 (id=1)
+*/
+
 describe("educhain", () => {
 
   async function create_wallet_with_sol() : Promise<Keypair> {

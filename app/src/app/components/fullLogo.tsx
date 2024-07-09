@@ -9,9 +9,9 @@ function FullLogo() {
       className={hstack({ alignItems: "center" })}
     >
       <img
-        src="https://flowbite.com/docs/images/logo.svg"
+        src="/logo.png"
         className={css({ h: 8 })}
-        alt="Flowbite Logo"
+        alt="EduChain Logo"
       />
       <span
         className={css({
@@ -20,7 +20,7 @@ function FullLogo() {
           _dark: { color: "white" },
         })}
       >
-        Flowbite
+        EduChain
       </span>
     </a>
   );

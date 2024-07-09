@@ -1,14 +1,10 @@
 "use client"
 import {
-  ChevronRightIcon,
-  CreditCardIcon,
   LogOutIcon,
-  MailIcon,
-  MessageSquareIcon,
-  PlusCircleIcon,
   SettingsIcon,
   UserIcon,
-  UserPlusIcon,
+  MoonIcon,
+  SunIcon,
 } from "lucide-react";
 import { HStack } from "styled-system/jsx";
 import { Button } from "~/components/ui/button";
@@ -16,11 +12,32 @@ import * as Menu from "~/components/ui/menu";
 import { Text } from "~/components/ui/text";
 import { css } from "styled-system/css";
 import { useRouter } from "next/navigation";
+import { useTheme } from "~/app/context/theme";
 
 const UserMenu = (props: Menu.RootProps) => {
     const router = useRouter();
+    const { theme, toggleTheme } = useTheme();
+
+     const handleThemeToggle = (
+       event:
+         | React.MouseEvent<HTMLDivElement>
+         | React.KeyboardEvent<HTMLDivElement>
+     ) => {
+      console.log("handleThemeToggle", theme);
+       event.preventDefault();
+       toggleTheme();
+     };
+
   return (
-    <Menu.Root {...props}>
+    <Menu.Root
+      positioning={{
+        placement: "bottom-end",
+        offset: { mainAxis: 4, crossAxis: -30 },
+        flip: true,
+        gutter: 8,
+      }}
+      {...props}
+    >
       <Menu.Trigger asChild>
         <button
           className={css({
@@ -61,9 +78,15 @@ const UserMenu = (props: Menu.RootProps) => {
                 </Text>
               </HStack>
             </Menu.Item>
-            <Menu.Item value="billing">
-              <HStack gap="2">
-                <CreditCardIcon /> Billing
+            <Menu.Item value="theme-toggle" onClick={handleThemeToggle}>
+              <HStack gap="6" justify="space-between" flex="1">
+                <HStack gap="2">
+                  {theme === "light" ? <MoonIcon /> : <SunIcon />}
+                  {theme === "light" ? "Dark Mode" : "Light Mode"}
+                </HStack>
+                <Text as="span" color="fg.subtle" size="sm">
+                  ⌘T
+                </Text>
               </HStack>
             </Menu.Item>
             <Menu.Item value="settings">
@@ -79,36 +102,7 @@ const UserMenu = (props: Menu.RootProps) => {
             <Menu.Root
               positioning={{ placement: "right-start", gutter: -2 }}
               {...props}
-            >
-              <Menu.TriggerItem justifyContent="space-between">
-                <HStack gap="2">
-                  <UserPlusIcon />
-                  Invite member
-                </HStack>
-                <ChevronRightIcon />
-              </Menu.TriggerItem>
-              <Menu.Positioner>
-                <Menu.Content>
-                  <Menu.Item value="email">
-                    <HStack gap="2">
-                      <MailIcon /> Email
-                    </HStack>
-                  </Menu.Item>
-                  <Menu.Item value="message">
-                    <HStack gap="2">
-                      <MessageSquareIcon /> Message
-                    </HStack>
-                  </Menu.Item>
-                  <Menu.Separator />
-                  <Menu.Item value="other">
-                    <HStack gap="2">
-                      <PlusCircleIcon />
-                      More Options...
-                    </HStack>
-                  </Menu.Item>
-                </Menu.Content>
-              </Menu.Positioner>
-            </Menu.Root>
+            ></Menu.Root>
             <Menu.Separator />
             <Menu.Item value="logout">
               <HStack gap="2">

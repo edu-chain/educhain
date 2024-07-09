@@ -3,6 +3,7 @@ import { PropsWithChildren } from 'react'
 import './global.css'
 import Navbar from './components/topBar'
 import { ModalsProvider } from './context/modals'
+import { ThemeProvider } from './context/theme'
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -13,12 +14,14 @@ const RootLayout = (props: PropsWithChildren) => {
   const { children } = props
   return (
     <html lang="en">
+                <ThemeProvider>
       <body>
         <ModalsProvider>
-          <Navbar />
-          {children}
+            <Navbar />
+            {children}
         </ModalsProvider>
       </body>
+      </ThemeProvider>
     </html>
   );
 }

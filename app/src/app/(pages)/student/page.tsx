@@ -1,5 +1,5 @@
 import React from 'react'
-import CourseCard from '~/app/components/courseCard';
+import CourseCard from '~/app/components/cards/courseCard';
 import { css } from "styled-system/css";
 import { grid, gridItem } from "styled-system/patterns";
 import Link from 'next/link';

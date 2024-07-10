@@ -35,11 +35,13 @@ graph TB;
 
     subgraph COURSE1
        ADMIN1[Admin 1]
-       ADMIN2[Admin 2]
        GROUP1[Group 1]
        GROUP2[Group 2]
        SESSION1[Session 10/07 8h-9h]
        SESSION2[Session 11/07 8h-9h]
+    
+       ADMIN1 --> |creates| GROUP1
+       ADMIN1 --> |creates| GROUP2
     end
 
     subgraph GROUP1
@@ -48,6 +50,8 @@ graph TB;
        STUDENT3[Student 3]
        STUDENT1 --> |sign| SESSION2
        STUDENT1 --> |sign| SESSION1
+       STUDENT2 --> |sign| SESSION2
+       STUDENT2 --> |sign| SESSION1
        STUDENT2 --> |swap request| GROUP2
     end
 

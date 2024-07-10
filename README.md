@@ -24,24 +24,22 @@ Course admins have the authority to manually create groups of up to three Studen
 
 ```mermaid
 graph TD;
-    subgraph Super-Admin
-        WALLET[Super-Admin Wallet] --> |creates| SCHOOL[School]
+    subgraph Super-Admin wallet
+        WALLET[Super-Admin] --> |creates| SCHOOL[School]
     end
 
     subgraph SCHOOL
         SCHOOL --> |creates| COURSE[Course]
     end
 
-    subgraph COURSE
-        COURSE --> |has| ADMIN[Admin]
-        COURSE --> |has| SESSION[Session]
-        COURSE --> |has| STUDENT[Student]
-        ADMIN -- min: 1, max: 3 --> COURSE
-        SESSION -.->|can have multiple| SESSION
-        STUDENT --> |can be in multiple| GROUP
-        GROUP -- 3 students --> STUDENT
-        STUDENT -.->|can be without| GROUP
+    subgraph Course
+        A[Course 1]
+        B[Course 2]
+        C[Course 3]
     end
+
+    C --> |has| Group1[Group 1]
+    C --> |has| Group2[Group 2]
 ```
 
 # Technical stack

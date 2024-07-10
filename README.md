@@ -41,18 +41,20 @@ graph TB;
        ADMIN1 --> |creates| GROUP1
     end
 
+    subgraph GROUP2
+       STUDENT4[Student 4]
+    end
+
     subgraph GROUP1
        STUDENT1[Student 1]
        STUDENT2[Student 2]
        STUDENT3[Student 3]
        STUDENT1 --> |sub| COURSE1
        STUDENT1 --> |signs| SESSION1
-       STUDENT2 --> |swap request| GROUP2
+       STUDENT2 --> |1. swap request| GROUP2
+       STUDENT4 --> |2. swap accept| STUDENT2
     end
 
-    subgraph GROUP2
-       STUDENT4[Student 4]
-    end
 ```
 
 # Technical stack

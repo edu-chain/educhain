@@ -46,7 +46,7 @@ graph TB;
        STUDENT1[Student 1]
        STUDENT2[Student 2]
        STUDENT3[Student 3]
-       STUDENT1 --> |sign| SESSION2
+       STUDENT1 --> |sign| SESSION1
        STUDENT2 --> |swap request| GROUP2
     end
 

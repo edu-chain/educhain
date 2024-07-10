@@ -33,12 +33,18 @@ graph TD;
     end
 
     subgraph Course
-        A[Course 1]
-        B[Course 2]
-        subgraph C[Course 3]
-            Group1[Group 1]
-            Student6[Student 6]
-            Student7[Student 7]
+        COURSE1[Course 1]
+        COURSE2[Course 2]
+        COURSE3[Course 3]
+    end
+
+    subgraph COURSE1
+       Group1[Group 1]
+       Group2[Group 2]
+    end
+
+    subgraph Group1
+       Student1[Student 1]
     end
 ```
 

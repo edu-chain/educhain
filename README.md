@@ -35,11 +35,15 @@ graph TD;
     subgraph Course
         A[Course 1]
         B[Course 2]
-        C[Course 3]
+        subgraph C[Course 3]
+            Group1[Group 1] --> Student1[Student 1]
+            Group1 --> Student2[Student 2]
+            Group1 --> Student3[Student 3]
+            Group2[Group 2] --> Student4[Student 4]
+            Group2 --> Student5[Student 5]
+            Student6[Student 6]
+            Student7[Student 7]
     end
-
-    C --> |has| Group1[Group 1]
-    C --> |has| Group2[Group 2]
 ```
 
 # Technical stack

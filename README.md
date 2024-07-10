@@ -23,7 +23,7 @@ Course admins have the authority to manually create groups of up to three Studen
 # Diagram
 
 ```mermaid
-graph TD;
+graph TB;
     subgraph Super-Admin wallet
         WALLET[Super-Admin] --> |creates| SCHOOL[School]
     end

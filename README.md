@@ -55,7 +55,7 @@ graph TD;
        STUDENT6[Student 6]
     end
 
-    subgraph GROUP2
+    subgraph GROUP3
        STUDENT7[Student 7]
        STUDENT8[Student 8]
     end

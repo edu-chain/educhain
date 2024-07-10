@@ -34,10 +34,11 @@ graph TB;
     end
 
     subgraph COURSE1
+       ADMIN1[Admin 1]
        GROUP1[Group 1]
        GROUP2[Group 2]
-       ADMIN1[Admin 1]
-       SESSION1[10/07 8h-9h]
+       SESSION1[Session 10/07 8h-9h]
+       SESSION2[Session 11/07 8h-9h]
     end
 
     subgraph COURSE2
@@ -48,6 +49,7 @@ graph TB;
        STUDENT1[Student 1]
        STUDENT2[Student 2]
        STUDENT3[Student 3]
+       STUDENT1 --> |sign| SESSION2
     end
 
     subgraph GROUP2

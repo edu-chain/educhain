@@ -50,6 +50,7 @@ graph TB;
        STUDENT2[Student 2]
        STUDENT3[Student 3]
        STUDENT1 --> |sign| SESSION2
+       STUDENT1 --> |sign| SESSION1
     end
 
     subgraph GROUP2
@@ -79,6 +80,7 @@ graph TB;
 - DesignSystem: Park-ui
 - Sytling: PandaCss
 - Typescript
+- solana/web3 js library
 
 ## Hosting
--vercel.app
+- vercel.app

@@ -29,13 +29,9 @@ graph TD;
     end
 
     subgraph SCHOOL
-        SCHOOL --> |creates| COURSE[Course]
-    end
-
-    subgraph Course
-        COURSE1[Course 1]
-        COURSE2[Course 2]
-        COURSE3[Course 3]
+        SCHOOL --> |creates| COURSE1[Course1]
+        SCHOOL --> |creates| COURSE2[Course2]
+        SCHOOL --> |creates| COURSE3[Course2]
     end
 
     subgraph COURSE1

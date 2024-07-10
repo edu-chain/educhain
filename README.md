@@ -23,43 +23,56 @@ Course admins have the authority to manually create groups of up to three Studen
 # Diagram
 
 ```mermaid
-graph TD;
-    subgraph Super-Admin Wallet
-        WALLET[Super-Admin Wallet] --> |creates| SCHOOL[School]
+graph TB;
+    subgraph edusign
+        WALLET[Super-Admin] --> |creates| SCHOOL[School]
     end
 
     subgraph SCHOOL
-        SCHOOL --> |creates| COURSE[Course]
+        SCHOOL --> |creates| COURSE1[Course1]
     end
 
-    subgraph COURSE
-        COURSE --> |has| ADMIN[Admin]
-        COURSE --> |has| SESSION[Session]
-        COURSE --> |has| STUDENT[Student]
-        ADMIN -- max: 3 --> COURSE
-        SESSION --> |has| ATTENDANCE[Attendance Sheet]
-        STUDENT -- |attends| SESSION
-        STUDENT -- |signs| ATTENDANCE
-        STUDENT -- |enrolls in| COURSE
-        STUDENT -- |can belong to multiple| COURSE
-        ADMIN -- |manages groups of 3 students| GROUP[Group]
-        STUDENT -- |requests| SWAPREQUEST[Swap Request]
-        SWAPREQUEST -- |designates another| GROUP
-        SWAPREQUEST -- |processed if| SWAPACCEPTATION[Swap Acceptation]
-        SWAPACCEPTATION -- |accepted by a student in the destination| GROUP
+    subgraph COURSE1
+       ADMIN1[Admin 1]
+       GROUP1[Group 1]
+       GROUP2[Group 2]
+       SESSION1[Session 10/07 8h-9h]
+    
+       ADMIN1 --> |creates| GROUP1
     end
+
+    subgraph GROUP2
+       STUDENT4[Student 4]
+       STUDENT5[Student 5]
+    end
+
+    subgraph GROUP1
+       STUDENT1[Student 1]
+       STUDENT2[Student 2]
+       STUDENT3[Student 3]
+       STUDENT1 --> |sub| COURSE1
+       STUDENT1 --> |signs| SESSION1
+       STUDENT2 --> |1. swap request| GROUP2
+       STUDENT4 --> |2. swap accept| STUDENT2
+    end
+
+```
 
 # Technical stack
 
 ## on-chain
-Solana
-Anchor
-Rust
-Typescript (testing)
+- Solana
+- Anchor
+- Rust
+- Typescript (testing)
 
 ## Front-end
-Framework Frontend: NextJS (y/c react)
-Component Lib: Ark-ui
-DesignSystem: Park-ui
-Sytling: PandaCss
-Typescript
+- Framework Frontend: NextJS (y/c react)
+- Component Lib: Ark-ui
+- DesignSystem: Park-ui
+- Sytling: PandaCss
+- Typescript
+- solana/web3 js library
+
+## Hosting
+- vercel.app

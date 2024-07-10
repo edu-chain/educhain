@@ -31,13 +31,16 @@ graph TD;
     subgraph SCHOOL
         SCHOOL --> |creates| COURSE1[Course1]
         SCHOOL --> |creates| COURSE2[Course2]
-        SCHOOL --> |creates| COURSE3[Course2]
         STUDENT4[Student 4]
     end
 
     subgraph COURSE1
        GROUP1[Group 1]
        GROUP2[Group 2]
+    end
+
+    subgraph COURSE2
+       GROUP3[Group 3]
     end
 
     subgraph GROUP1
@@ -47,7 +50,16 @@ graph TD;
     end
 
     subgraph GROUP2
+       STUDENT4[Student 4]
+       STUDENT5[Student 5]
+       STUDENT6[Student 6]
     end
+
+    subgraph GROUP2
+       STUDENT7[Student 7]
+       STUDENT8[Student 8]
+    end
+
 ```
 
 # Technical stack

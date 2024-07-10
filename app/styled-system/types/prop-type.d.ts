@@ -210,7 +210,7 @@ interface PropertyValueTypes {
 	srOnly: boolean;
 	debug: boolean;
 	containerName: Tokens["containerNames"] | CssProperties["containerName"];
-	colorPalette: "current" | "black" | "white" | "transparent" | "gray" | "gray.light" | "gray.dark" | "sage" | "sage.light" | "sage.dark" | "neutral" | "neutral.light" | "neutral.dark" | "text" | "background" | "primary" | "secondary" | "accent" | "bg" | "fg" | "border";
+	colorPalette: "current" | "black" | "white" | "transparent" | "gray" | "gray.light" | "gray.dark" | "sage" | "sage.light" | "sage.dark" | "neutral" | "neutral.light" | "neutral.dark" | "ui" | "ui.text" | "ui.background" | "ui.primary" | "ui.secondary" | "accent" | "bg" | "fg" | "border";
 	textStyle: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl";
 }
 

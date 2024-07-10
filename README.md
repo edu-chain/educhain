@@ -27,27 +27,6 @@ graph TD;
     subgraph Super-Admin Wallet
         WALLET[Super-Admin Wallet] --> |creates| SCHOOL[School]
     end
-
-    subgraph SCHOOL
-        SCHOOL --> |creates| COURSE[Course]
-    end
-
-    subgraph COURSE
-        COURSE --> |has| ADMIN[Admin]
-        COURSE --> |has| SESSION[Session]
-        COURSE --> |has| STUDENT[Student]
-        ADMIN -- max: 3 --> COURSE
-        SESSION --> |has| ATTENDANCE[Attendance Sheet]
-        STUDENT -- |attends| SESSION
-        STUDENT -- |signs| ATTENDANCE
-        STUDENT -- |enrolls in| COURSE
-        STUDENT -- |can belong to multiple| COURSE
-        ADMIN -- |manages groups of 3 students| GROUP[Group]
-        STUDENT -- |requests| SWAPREQUEST[Swap Request]
-        SWAPREQUEST -- |designates another| GROUP
-        SWAPREQUEST -- |processed if| SWAPACCEPTATION[Swap Acceptation]
-        SWAPACCEPTATION -- |accepted by a student in the destination| GROUP
-    end
 ```
 
 # Technical stack

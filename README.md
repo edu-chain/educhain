@@ -52,7 +52,6 @@ graph TB;
 
     subgraph GROUP2
        STUDENT4[Student 4]
-       ...
     end
 ```
 

@@ -45,7 +45,6 @@ graph TB;
     end
 
     subgraph GROUP1
-       direction TB
        STUDENT1[Student 1]
        STUDENT2[Student 2]
        STUDENT3[Student 3]

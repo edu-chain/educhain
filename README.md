@@ -30,7 +30,6 @@ graph TB;
 
     subgraph SCHOOL
         SCHOOL --> |creates| COURSE1[Course1]
-        SCHOOL --> |creates| COURSE2[Course2]
     end
 
     subgraph COURSE1

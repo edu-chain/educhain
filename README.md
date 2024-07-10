@@ -45,7 +45,7 @@ graph TB;
        STUDENT1[Student 1]
        STUDENT2[Student 2]
        STUDENT3[Student 3]
-       STUDENT1 --> |subscribes| COURSE1
+       STUDENT1 --> |sub| COURSE1
        STUDENT1 --> |signs| SESSION1
        STUDENT2 --> |swap request| GROUP2
     end

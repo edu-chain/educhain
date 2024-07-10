@@ -27,6 +27,17 @@ graph TD;
     subgraph Super-Admin Wallet
         WALLET[Super-Admin Wallet] --> |creates| SCHOOL[School]
     end
+
+    subgraph SCHOOL
+        SCHOOL --> |creates| COURSE[Course]
+    end
+
+    subgraph COURSE
+        COURSE --> |has| ADMIN[Admin]
+        COURSE --> |has| SESSION[Session]
+    end
+
+
 ```
 
 # Technical stack

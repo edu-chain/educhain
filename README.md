@@ -31,12 +31,12 @@ graph TD;
     subgraph SCHOOL
         SCHOOL --> |creates| COURSE1[Course1]
         SCHOOL --> |creates| COURSE2[Course2]
-        STUDENT4[Student 4]
     end
 
     subgraph COURSE1
        GROUP1[Group 1]
        GROUP2[Group 2]
+       ADMIN1[Admin 1]
     end
 
     subgraph COURSE2

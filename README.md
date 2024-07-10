@@ -37,6 +37,7 @@ graph TD;
        GROUP1[Group 1]
        GROUP2[Group 2]
        ADMIN1[Admin 1]
+       SESSION1[10/07 8h-9h]
     end
 
     subgraph COURSE2

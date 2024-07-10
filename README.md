@@ -35,23 +35,29 @@ graph TD;
     subgraph COURSE
         COURSE --> |has| ADMIN[Admin]
         COURSE --> |has| SESSION[Session]
-        ADMIN -- max: 3 --> COURSE
+        COURSE --> |has| STUDENT[Student]
+        ADMIN -- min: 1, max: 3 --> COURSE
+        SESSION -.->|can have multiple| SESSION
+        STUDENT --> |can be in multiple| GROUP
+        GROUP -- 3 students --> STUDENT
+        STUDENT -.->|can be without| GROUP
     end
-
-
 ```
 
 # Technical stack
 
 ## on-chain
-Solana
-Anchor
-Rust
-Typescript (testing)
+- Solana
+- Anchor
+- Rust
+- Typescript (testing)
 
 ## Front-end
-Framework Frontend: NextJS (y/c react)
-Component Lib: Ark-ui
-DesignSystem: Park-ui
-Sytling: PandaCss
-Typescript
+- Framework Frontend: NextJS (y/c react)
+- Component Lib: Ark-ui
+- DesignSystem: Park-ui
+- Sytling: PandaCss
+- Typescript
+
+## Hosting
+-vercel.app

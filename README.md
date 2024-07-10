@@ -24,7 +24,7 @@ Course admins have the authority to manually create groups of up to three Studen
 
 ```mermaid
 graph TB;
-    subgraph Super-Admin wallet
+    subgraph 
         WALLET[Super-Admin] --> |creates| SCHOOL[School]
     end
 
@@ -35,14 +35,11 @@ graph TB;
 
     subgraph COURSE1
        ADMIN1[Admin 1]
+       ADMIN2[Admin 2]
        GROUP1[Group 1]
        GROUP2[Group 2]
        SESSION1[Session 10/07 8h-9h]
        SESSION2[Session 11/07 8h-9h]
-    end
-
-    subgraph COURSE2
-       GROUP3[Group 3]
     end
 
     subgraph GROUP1
@@ -52,17 +49,6 @@ graph TB;
        STUDENT1 --> |sign| SESSION2
        STUDENT1 --> |sign| SESSION1
        STUDENT2 --> |swap request| GROUP2
-    end
-
-    subgraph GROUP2
-       STUDENT4[Student 4]
-       STUDENT5[Student 5]
-       STUDENT6[Student 6]
-    end
-
-    subgraph GROUP3
-       STUDENT7[Student 7]
-       STUDENT8[Student 8]
     end
 
 ```

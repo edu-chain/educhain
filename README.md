@@ -48,6 +48,7 @@ graph TD;
         SWAPREQUEST -- |processed if| SWAPACCEPTATION[Swap Acceptation]
         SWAPACCEPTATION -- |accepted by a student in the destination| GROUP
     end
+```
 
 # Technical stack
 

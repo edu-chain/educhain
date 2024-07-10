@@ -38,7 +38,6 @@ graph TB;
        GROUP1[Group 1]
        GROUP2[Group 2]
        SESSION1[Session 10/07 8h-9h]
-       SESSION2[Session 11/07 8h-9h]
     
        ADMIN1 --> |creates| GROUP1
     end
@@ -51,6 +50,11 @@ graph TB;
        STUDENT2 --> |swap request| GROUP2
     end
 
+    subgraph GROUP2
+       STUDENT4[Student 4]
+       STUDENT5[Student 5]
+       STUDENT6[Student 6]
+    end
 ```
 
 # Technical stack

@@ -44,7 +44,6 @@ graph TB;
     subgraph GROUP2
        STUDENT4[Student 4]
        STUDENT5[Student 5]
-       STUDENT6[Student 6]
     end
 
     subgraph GROUP1

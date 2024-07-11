@@ -1,0 +1,1198 @@
+{
+  "address": "8Rothu1LwZZJJFEV4SHCWTHmYyc8d7JQ8KaSvtNtJbPJ",
+  "metadata": {
+    "name": "educhain",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "accept_group_swap",
+      "discriminator": [
+        154,
+        230,
+        30,
+        51,
+        18,
+        201,
+        214,
+        123
+      ],
+      "accounts": [
+        {
+          "name": "course",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  117,
+                  114,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "swap_request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  119,
+                  97,
+                  112,
+                  95,
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course"
+              },
+              {
+                "kind": "account",
+                "path": "swap_request.subscription",
+                "account": "GroupSwapRequestDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "swap_request.student",
+                "account": "GroupSwapRequestDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "signer_group",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  114,
+                  111,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "signer_group.id",
+                "account": "GroupDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "add_student_to_group",
+      "discriminator": [
+        133,
+        236,
+        254,
+        230,
+        24,
+        60,
+        217,
+        240
+      ],
+      "accounts": [
+        {
+          "name": "course",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  117,
+                  114,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "subscription",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  98,
+                  115,
+                  99,
+                  114,
+                  105,
+                  112,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course"
+              },
+              {
+                "kind": "account",
+                "path": "subscription.student",
+                "account": "StudentSubscriptionDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "group",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  114,
+                  111,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "group.id",
+                "account": "GroupDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_course",
+      "discriminator": [
+        120,
+        121,
+        154,
+        164,
+        107,
+        180,
+        167,
+        241
+      ],
+      "accounts": [
+        {
+          "name": "school",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  99,
+                  104,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "course",
+          "writable": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "course_admins",
+          "type": {
+            "vec": "pubkey"
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_group",
+      "discriminator": [
+        79,
+        60,
+        158,
+        134,
+        61,
+        199,
+        56,
+        248
+      ],
+      "accounts": [
+        {
+          "name": "course",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  117,
+                  114,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "group",
+          "writable": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_session",
+      "discriminator": [
+        242,
+        193,
+        143,
+        179,
+        150,
+        25,
+        122,
+        227
+      ],
+      "accounts": [
+        {
+          "name": "school",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  99,
+                  104,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "course",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  117,
+                  114,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "school"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "session",
+          "writable": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "start",
+          "type": "u64"
+        },
+        {
+          "name": "end",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "group_swap_request",
+      "discriminator": [
+        185,
+        149,
+        115,
+        7,
+        41,
+        1,
+        243,
+        193
+      ],
+      "accounts": [
+        {
+          "name": "course",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  117,
+                  114,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "subscription",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  98,
+                  115,
+                  99,
+                  114,
+                  105,
+                  112,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course"
+              },
+              {
+                "kind": "account",
+                "path": "subscription.student",
+                "account": "StudentSubscriptionDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "requested_group",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  114,
+                  111,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "requested_group.id",
+                "account": "GroupDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "swap_request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  119,
+                  97,
+                  112,
+                  95,
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "subscription.course",
+                "account": "StudentSubscriptionDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "subscription"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_school",
+      "discriminator": [
+        143,
+        96,
+        246,
+        21,
+        93,
+        250,
+        28,
+        111
+      ],
+      "accounts": [
+        {
+          "name": "school",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  99,
+                  104,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "student_attendance",
+      "discriminator": [
+        165,
+        17,
+        120,
+        203,
+        148,
+        244,
+        69,
+        107
+      ],
+      "accounts": [
+        {
+          "name": "course",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  117,
+                  114,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "subscription",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  98,
+                  115,
+                  99,
+                  114,
+                  105,
+                  112,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "subscription.course",
+                "account": "StudentSubscriptionDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "session",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "session.id",
+                "account": "SessionDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "attendance",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  116,
+                  116,
+                  101,
+                  110,
+                  100,
+                  97,
+                  110,
+                  99,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "student_subscription",
+      "discriminator": [
+        37,
+        36,
+        6,
+        142,
+        135,
+        183,
+        67,
+        218
+      ],
+      "accounts": [
+        {
+          "name": "course",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  117,
+                  114,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "CourseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "CourseDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "subscription",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  98,
+                  115,
+                  99,
+                  114,
+                  105,
+                  112,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "CourseDataAccount",
+      "discriminator": [
+        132,
+        186,
+        3,
+        126,
+        136,
+        64,
+        187,
+        220
+      ]
+    },
+    {
+      "name": "GroupDataAccount",
+      "discriminator": [
+        219,
+        0,
+        239,
+        24,
+        210,
+        136,
+        62,
+        244
+      ]
+    },
+    {
+      "name": "GroupSwapRequestDataAccount",
+      "discriminator": [
+        49,
+        160,
+        178,
+        142,
+        235,
+        70,
+        76,
+        229
+      ]
+    },
+    {
+      "name": "SchoolDataAccount",
+      "discriminator": [
+        26,
+        29,
+        213,
+        19,
+        154,
+        228,
+        31,
+        136
+      ]
+    },
+    {
+      "name": "SessionDataAccount",
+      "discriminator": [
+        141,
+        49,
+        107,
+        170,
+        196,
+        65,
+        205,
+        39
+      ]
+    },
+    {
+      "name": "StudentAttendanceProofDataAccount",
+      "discriminator": [
+        212,
+        180,
+        208,
+        24,
+        45,
+        43,
+        143,
+        58
+      ]
+    },
+    {
+      "name": "StudentSubscriptionDataAccount",
+      "discriminator": [
+        109,
+        25,
+        2,
+        51,
+        19,
+        57,
+        195,
+        182
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "ExceedingMaximumAdmins",
+      "msg": "Exceeding maximum admins count"
+    },
+    {
+      "code": 6001,
+      "name": "ExceedingMaximumGroupMembers",
+      "msg": "Exceeding maximum group members count"
+    },
+    {
+      "code": 6002,
+      "name": "OnlyCourseAdminCanCreateGroup",
+      "msg": "Only a course admin can create a group"
+    },
+    {
+      "code": 6003,
+      "name": "StudentIsMemberOfAnotherGroup",
+      "msg": "Student is member of another group"
+    }
+  ],
+  "types": [
+    {
+      "name": "CourseDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "school",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "admins",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "sessions_counter",
+            "type": "u64"
+          },
+          {
+            "name": "groups_counter",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GroupDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "course",
+            "type": "pubkey"
+          },
+          {
+            "name": "students",
+            "type": {
+              "vec": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GroupSwapRequestDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "student",
+            "type": "pubkey"
+          },
+          {
+            "name": "requested_group",
+            "type": "pubkey"
+          },
+          {
+            "name": "course",
+            "type": "pubkey"
+          },
+          {
+            "name": "subscription",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SchoolDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "courses_counter",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SessionDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "course",
+            "type": "pubkey"
+          },
+          {
+            "name": "start",
+            "type": "u64"
+          },
+          {
+            "name": "end",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StudentAttendanceProofDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "student",
+            "type": "pubkey"
+          },
+          {
+            "name": "session",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StudentSubscriptionDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "course",
+            "type": "pubkey"
+          },
+          {
+            "name": "student",
+            "type": "pubkey"
+          },
+          {
+            "name": "group",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ]
+}

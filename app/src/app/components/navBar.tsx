@@ -15,7 +15,6 @@ const linkStyle = (isActive: boolean) => css({
 
 export function NavBar() {
   const pathname = usePathname();
-  console.log(pathname);
 
   return (
     <div className={hstack({flexGrow: '1', h: 'full'})}>

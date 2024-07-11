@@ -5,6 +5,7 @@ import Navbar from './components/topBar'
 import { ModalsProvider } from './context/modals'
 import { ThemeProvider } from './context/theme'
 import AppWalletProvider from './components/SolanaWallet/AppWalletProvider'
+import ContentContainer from './contentContainer'
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -13,14 +14,17 @@ export const metadata: Metadata = {
 
 const RootLayout = (props: PropsWithChildren) => {
   const { children } = props
+
   return (
     <html lang="en">
       <ThemeProvider>
         <body>
           <AppWalletProvider>
             <ModalsProvider>
-                <Navbar />
+              <Navbar />
+              <ContentContainer>
                 {children}
+              </ContentContainer>
             </ModalsProvider>
           </AppWalletProvider>
         </body>

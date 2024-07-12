@@ -1,4 +1,6 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
+use anchor_lang::system_program;
 
 mod state;	// import ./state/mod.rs (or ./state.rs)
 // use state::group_swap_request_data_account::GroupSwapRequestDataAccount; 	// using ./state/group_swap_request_data_account.rs:GroupSwapRequestDataAccount
@@ -35,6 +37,7 @@ pub mod educhain {
         ctx.accounts.course.id = ctx.accounts.school.courses_counter; 
         ctx.accounts.course.name = name;
         ctx.accounts.course.school = ctx.accounts.school.key();
+        ctx.accounts.course.school_owner = ctx.accounts.signer.key();
         ctx.accounts.course.admins = course_admins;
         ctx.accounts.course.sessions_counter = 0;
 
@@ -53,7 +56,18 @@ pub mod educhain {
     }
 
     pub fn student_subscription(ctx: Context<StudentSubscription>, name: String) -> Result<()> {
-        // TODO: We should make this call "payable" in order to let the student pay his course
+
+        // Student must pay his subscription (3 SOL per course). So this instruction is "payable"
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.signer.to_account_info(),
+                    to: ctx.accounts.school.to_account_info(),
+                },
+            ),
+            3 * LAMPORTS_PER_SOL
+        )?;
 
         // TODO: check course state: If the course has start -> not possible to join
 
@@ -115,6 +129,29 @@ pub mod educhain {
 
     pub fn accept_group_swap(_ctx: Context<AcceptGroupSwap>) -> Result<()> {
         // TODO: Checks + swap
+        Ok(())
+    }
+
+    pub fn withdraw_revenues(ctx: Context<WithdrawRevenues>) -> Result<()> {
+        // The code bellow does not work.
+        // To fetch SOL of a PDA, we must work with try_borrow_mut_lamports()
+        /*
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.school.to_account_info(),
+                    to: ctx.accounts.signer.to_account_info(),
+                },
+            ),
+            ctx.accounts.school.to_account_info().lamports()
+        )?;
+        */
+
+        let amount = ctx.accounts.school.to_account_info().lamports(); // Signer takes everything !
+        **ctx.accounts.school.to_account_info().try_borrow_mut_lamports()? -= amount;
+        **ctx.accounts.signer.to_account_info().try_borrow_mut_lamports()? += amount;
+
         Ok(())
     }
 }

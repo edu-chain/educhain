@@ -25,3 +25,5 @@ pub use student_attendance::*;
 pub mod student_subscription;
 pub use student_subscription::*;
 
+pub mod withdraw_revenues;
+pub use withdraw_revenues::*;

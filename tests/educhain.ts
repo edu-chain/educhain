@@ -416,7 +416,6 @@ describe("educhain", () => {
   it("student1, student2, student7 wants to join course1", async () => {
     let initial_balance_school1 = await program.provider.connection.getBalance(da_school1);
     let initial_balance_student1 = await program.provider.connection.getBalance(student1.publicKey);
-    console.log(initial_balance_school1);	// TODO: Don't understand why there is a few lamports on school1 data-account
 
     sub_student1_course1 = await student_subscription(da_school1, da_course1, student1, "Bob");
     sub_student2_course1 = await student_subscription(da_school1, da_course1, student2, "Alice");
@@ -725,14 +724,15 @@ describe("educhain", () => {
 
   it("wallet1: withdraw school1 revenues", async () => {
     let initial_balance_wallet1 = await program.provider.connection.getBalance(wallet1.publicKey);
-    let initial_balance_school1 = await program.provider.connection.getBalance(da_school1);
 
-    await withdraw_revenues(da_school1, wallet1);
+    await withdraw_revenues(da_school1, wallet1); // This will withdraw all SOLs from school1 data-account, except the rent
 
     let new_balance_wallet1 = await program.provider.connection.getBalance(wallet1.publicKey);
+    expect(new_balance_wallet1 - initial_balance_wallet1).to.equal(9 * 3 * LAMPORTS_PER_SOL);
+    
     let new_balance_school1 = await program.provider.connection.getBalance(da_school1);
-
-    expect(new_balance_wallet1 - initial_balance_wallet1).to.be.within(9 * 3 * LAMPORTS_PER_SOL, (9 * 3 + 0.1) * LAMPORTS_PER_SOL); // TODO: Why more than 27 SOL ?
-    expect((new_balance_school1) / LAMPORTS_PER_SOL).to.equal(0);
+    const school1_account_info = await program.provider.connection.getAccountInfo(da_school1);
+    const rent = await program.provider.connection.getMinimumBalanceForRentExemption(school1_account_info.data.length);
+    expect(new_balance_school1).to.equal(rent); // We must keep the rent on school1 data-account
   });
 });

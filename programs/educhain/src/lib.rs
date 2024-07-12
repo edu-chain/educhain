@@ -154,6 +154,7 @@ pub mod educhain {
 
         let amount = ctx.accounts.school.to_account_info().lamports() - rent; // Signer takes everything on the school data-account balance, except the rent
 
+        // sum of account balances before and after instruction must match:
         **ctx.accounts.school.to_account_info().try_borrow_mut_lamports()? -= amount;
         **ctx.accounts.signer.to_account_info().try_borrow_mut_lamports()? += amount;
 

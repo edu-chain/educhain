@@ -1,9 +1,21 @@
 use anchor_lang::prelude::*;
+use crate::state::school_data_account::SchoolDataAccount;
 use crate::state::course_data_account::CourseDataAccount;
 use crate::state::student_subscription_data_account::StudentSubscriptionDataAccount;
 
 #[derive(Accounts)]
 pub struct StudentSubscription<'info> {
+    // We need school account because it will receive funds from student when subscribing
+    #[account(
+        mut,
+        seeds = [
+        b"school",
+        course.school_owner.as_ref()
+        ],
+        bump
+    )]
+    pub school: Account<'info, SchoolDataAccount>,
+
     #[account(
         seeds = [
         b"course",

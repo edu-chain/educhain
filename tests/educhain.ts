@@ -116,7 +116,9 @@ describe("educhain", () => {
     return da_session;
   } 
 
-  async function student_subscription(da_course: PublicKey, wallet: Keypair, name) : Promise<PublicKey> {
+  async function student_subscription(da_school: PublicKey, da_course: PublicKey, wallet: Keypair, name) : Promise<PublicKey> {
+    let balance1 = await program.provider.connection.getBalance(wallet.publicKey);
+
     const [da_subscription] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("subscription"),
@@ -126,6 +128,7 @@ describe("educhain", () => {
 
     let tx = await program.methods.studentSubscription(name)
       .accounts({ 
+        school: da_school,
         course: da_course,
         subscription: da_subscription,
         signer: wallet.publicKey,
@@ -133,6 +136,19 @@ describe("educhain", () => {
       })
       .signers([wallet])
       .rpc();
+
+    while (true) {
+      let ret = await program.provider.connection.confirmTransaction(tx);
+      if (ret.value.confirmationStatus=='confirmed') break;
+    }
+
+    const txDetails = await program.provider.connection.getTransaction(tx, { commitment: 'confirmed' });
+
+    let balance2 = await program.provider.connection.getBalance(wallet.publicKey);
+    let delta = balance1 - balance2 - txDetails?.meta?.fee;  // TODO: fee does not include everything. delta should be equals to 3...
+    // console.log(delta);
+    // console.log(delta / LAMPORTS_PER_SOL);
+
     return da_subscription;
   };
 
@@ -233,6 +249,17 @@ describe("educhain", () => {
       .signers([wallet])
       .rpc();
   };
+
+  async function withdraw_revenues(da_school: PublicKey, wallet: Keypair) : Promise {
+    let tx = await program.methods.withdrawRevenues()
+      .accounts({ 
+        school: da_school,
+        signer: wallet.publicKey,
+        systemProgram: SystemProgram.programId
+      })
+      .signers([wallet])
+      .rpc();
+  }
 
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
@@ -376,27 +403,46 @@ describe("educhain", () => {
     student7 = await create_wallet_with_sol();
   });
 
+  it("student1 trying to join course1 - setting wrong school (should fail)", async () => {
+    try {
+      await student_subscription(da_school2, da_course1, student1, "Bob");
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
+    }
+  });
+
   it("student1, student2, student7 wants to join course1", async () => {
-    sub_student1_course1 = await student_subscription(da_course1, student1, "Bob");
-    sub_student2_course1 = await student_subscription(da_course1, student2, "Alice");
-    sub_student7_course1 = await student_subscription(da_course1, student7, "John");
+    let initial_balance_school1 = await program.provider.connection.getBalance(da_school1);
+    let initial_balance_student1 = await program.provider.connection.getBalance(student1.publicKey);
+
+    sub_student1_course1 = await student_subscription(da_school1, da_course1, student1, "Bob");
+    sub_student2_course1 = await student_subscription(da_school1, da_course1, student2, "Alice");
+    sub_student7_course1 = await student_subscription(da_school1, da_course1, student7, "John");
+
+    let new_balance_school1 = await program.provider.connection.getBalance(da_school1);
+    expect(new_balance_school1 - initial_balance_school1).to.equal(9 * LAMPORTS_PER_SOL);
+
+    let new_balance_student1 = await program.provider.connection.getBalance(student1.publicKey);
+    expect(new_balance_student1 - initial_balance_student1).to.be.within(-3.1 * LAMPORTS_PER_SOL, -3 * LAMPORTS_PER_SOL); // TODO: Hard to find fees...
   });
 
   it("student2, student7 also wants to join course2", async () => {
-    sub_student2_course2 = await student_subscription(da_course2, student2, "Alice");
-    sub_student7_course2 = await student_subscription(da_course2, student7, "John");
+    sub_student2_course2 = await student_subscription(da_school1, da_course2, student2, "Alice");
+    sub_student7_course2 = await student_subscription(da_school1, da_course2, student7, "John");
   });
 
   it("student3,4,5,6 on course2", async () => {
-    sub_student3_course2 = await student_subscription(da_course2, student3, "Paul");
-    sub_student4_course2 = await student_subscription(da_course2, student4, "Jessie");
-    sub_student5_course2 = await student_subscription(da_course2, student5, "Jack");
-    sub_student6_course2 = await student_subscription(da_course2, student6, "Steve");
+    sub_student3_course2 = await student_subscription(da_school1, da_course2, student3, "Paul");
+    sub_student4_course2 = await student_subscription(da_school1, da_course2, student4, "Jessie");
+    sub_student5_course2 = await student_subscription(da_school1, da_course2, student5, "Jack");
+    sub_student6_course2 = await student_subscription(da_school1, da_course2, student6, "Steve");
   });
 
   it("student1 tries to subscribe again to course1 (should fail)", async () => {
     try {
-      await student_subscription(da_course1, student1, "Bob");
+      await student_subscription(da_school1, da_course1, student1, "Bob");
       expect.fail("Should fail");
     } catch (err) {
       // TODO: no error code in this case ? Find a better way...
@@ -665,5 +711,28 @@ describe("educhain", () => {
     expect(swap_requests.length).to.equal(1);
 
     // TODO: Check new students/groups membership
+  });
+
+  it("wallet2 trying to withdraw school1 revenues (should fail)", async () => {
+    try {
+      await withdraw_revenues(da_school1, wallet2);
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("ConstraintSeeds");
+    }
+  });
+
+  it("wallet1: withdraw school1 revenues", async () => {
+    let initial_balance_wallet1 = await program.provider.connection.getBalance(wallet1.publicKey);
+
+    await withdraw_revenues(da_school1, wallet1); // This will withdraw all SOLs from school1 data-account, except the rent
+
+    let new_balance_wallet1 = await program.provider.connection.getBalance(wallet1.publicKey);
+    expect(new_balance_wallet1 - initial_balance_wallet1).to.equal(9 * 3 * LAMPORTS_PER_SOL);
+    
+    let new_balance_school1 = await program.provider.connection.getBalance(da_school1);
+    const school1_account_info = await program.provider.connection.getAccountInfo(da_school1);
+    const rent = await program.provider.connection.getMinimumBalanceForRentExemption(school1_account_info.data.length);
+    expect(new_balance_school1).to.equal(rent); // We must keep the rent on school1 data-account
   });
 });

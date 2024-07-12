@@ -8,6 +8,8 @@ pub struct CourseDataAccount {
     pub id: u64,		// Numeric identifier of the course in the school
     pub school: Pubkey,		// A course is linked to a school
 
+    pub school_owner: Pubkey,	// storage redundancy... but necessary
+
     #[max_len(32)]
     pub name: String,
 

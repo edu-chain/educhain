@@ -22,7 +22,8 @@
     ],
     "paths": {
       "~/*": ["./src/*"],
-      "@components/*": ["./src/app/components/*"]
+      "@components/*": ["./src/app/components/*"],
+      "@api/*": ["./api/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "postcss.config.cjs"],

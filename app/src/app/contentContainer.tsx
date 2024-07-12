@@ -2,12 +2,13 @@
 'use client'
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PropsWithChildren } from "react";
-import { getProgram } from "./components/Program/program";
-import { Wallet } from "@coral-xyz/anchor/dist/cjs/provider";
+import { useProgram } from "./components/solana/solana-provider";
 import { center } from "styled-system/patterns";
 
 const ContentContainer = (props: PropsWithChildren) => {
   const wallet = useWallet();
+  const program = useProgram();
+
   if (!wallet.connected) {
     return (
       <main>
@@ -15,7 +16,6 @@ const ContentContainer = (props: PropsWithChildren) => {
       </main>
     )
   }
-  const program = getProgram(wallet as Wallet);
 
   return (
     <main>

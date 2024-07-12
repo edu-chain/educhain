@@ -148,7 +148,12 @@ pub mod educhain {
         )?;
         */
 
-        let amount = ctx.accounts.school.to_account_info().lamports(); // Signer takes everything !
+
+        let account_size = ctx.accounts.school.to_account_info().try_data_len()?;
+        let rent = Rent::get()?.minimum_balance(account_size);
+
+        let amount = ctx.accounts.school.to_account_info().lamports() - rent; // Signer takes everything on the school data-account balance, except the rent
+
         **ctx.accounts.school.to_account_info().try_borrow_mut_lamports()? -= amount;
         **ctx.accounts.signer.to_account_info().try_borrow_mut_lamports()? += amount;
 

@@ -23,7 +23,7 @@ function SchoolPage() {
             setSchoolData(data);
         };
         fetchSchoolData();
-    }, [wallet.publicKey, program]);
+    },[wallet.publicKey]);
 
     return (
         <div>

@@ -13,7 +13,7 @@ export async function getSchoolDataAccount(publicKey: PublicKey, program: Progra
     );
 
     try {
-        const schoolData = await program.provider.connection.getAccountInfo(school[0]);
+        const schoolData = await program.account.schoolDataAccount.fetch(school[0]);
         return schoolData;
     } catch (error) {
         return null;
@@ -21,7 +21,6 @@ export async function getSchoolDataAccount(publicKey: PublicKey, program: Progra
 }
 
 export async function createSchoolDataAccount(program: Program<Educhain>, wallet: any){
-    console.log("program id: ", program.programId.toBase58());
 
     const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
     
@@ -40,22 +39,10 @@ export async function createSchoolDataAccount(program: Program<Educhain>, wallet
         systemProgram: SystemProgram.programId,
     })
     .transaction();
-    
+
     const { blockhash } = await connection.getLatestBlockhash();
-    console.log("Blockhash: ", blockhash);
     transaction.feePayer = wallet.publicKey;
     transaction.recentBlockhash = blockhash;
-    console.log("Transaction: ", transaction);
-
-    try {
-        const signedTransaction = await wallet.signTransaction(transaction);
-        console.log("Signed Transaction: ", signedTransaction);
-        let ts = await connection.sendRawTransaction(signedTransaction.serialize());
-        console.log("Transaction Signature: ", ts);
-    } catch (error) {
-        console.error("Transaction Error: ", error);
-        if (error.logs) {
-            console.error("Transaction Logs: ", error.logs);
-        }
-    }
+    const signedTransaction = await wallet.signTransaction(transaction);
+    await connection.sendRawTransaction(signedTransaction.serialize());
 }

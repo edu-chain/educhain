@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-educhain = "3WXZzDFmMAv6z69NQZNhV2YLMMWc7khQNRfyei2VCZmi"
+educhain = "7uHVPsgHpFmUCndwyBWA3wUF6jwmf6NX4UirwvJSbAZH"
 
 [registry]
 url = "https://api.apr.dev"

@@ -5,10 +5,13 @@ import * as Dialog from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import { Text } from '~/components/ui/text'
-import { SelectComp } from '../UI/select'
 import { useForm, Controller } from "react-hook-form";
 import { useModalsProvider } from '~/app/context/modals'
 import { SingleDatePicker } from '~/app/components/UI/datePicker'
+import { useProgram } from '../solana/solana-provider'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { createCourseAccount } from '@api/educhain'
+import { PublicKey } from '@solana/web3.js'
 
 type Session = {
   date: Date | null
@@ -24,12 +27,19 @@ function CreateCourseModal() {
   const [groupSize, setGroupSize] = useState<number>()
   const [sessions, setSessions] = useState<Session[]>([])
 
+  const program = useProgram()
+  const wallet = useWallet()
+
   const { control, handleSubmit } = useForm<{
     sessions: Session[]
   }>();
 
   const onSubmit = (data: { sessions: Session[] }) => {
     console.log(data);
+    createCourseAccount(program, wallet, {
+      name: courseName || "",
+      admins: [wallet.publicKey as PublicKey],
+    });
   };
 
   const handleAddSession = () => {

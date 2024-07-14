@@ -49,6 +49,69 @@ type schoolData = {
   coursesCounter: BN,
 }
 
+function CourseCreate() {
+  const { CreateCourseModalContext } = useModalsProvider()
+  const { setOpen } = CreateCourseModalContext
+
+  return (
+    <div
+      onClick={() => setOpen(true)}
+      className={gridItem({
+        colSpan: 1,
+        rowSpan: 1,
+        borderRadius: "md",
+        overflow: "hidden",
+        boxShadow: "md",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        bg: "black",
+        color: "white",
+        _dark: { bg: "white", color: "black" },
+        cursor: "pointer",
+        transition: "all 0.2s",
+        _hover: { transform: "scale(1.05)" },
+      })}
+  >
+    <span
+      className={css({
+        fontSize: "4xl",
+      })}
+    >
+      +
+    </span>
+    <span
+      className={css({
+        fontSize: "xl",
+        fontWeight: "bold",
+        color: "gray.800",
+        _dark: { color: "white" },
+      })}
+    >
+      Create Course
+    </span>
+    </div>
+  );
+}
+
+// Mock data for courses (replace with actual data fetching logic)
+const courses = [
+  { courseName: "Mathematics", studentsNumber: 30, maxGroupSize: 5, progress: 75 },
+  { courseName: "Physics", studentsNumber: 25, maxGroupSize: 4, progress: 60 },
+  { courseName: "Computer Science", studentsNumber: 35, maxGroupSize: 6, progress: 90 },
+];
+
+function CourseList() {
+  return (
+    <>
+    {courses.map((course, index) => (
+      <AdminCourseCard key={index} {...course} />
+    ))}
+    </>
+  );
+}
+
 function SchoolData(props: {data: schoolData}) {
   return (
     <>
@@ -57,6 +120,16 @@ function SchoolData(props: {data: schoolData}) {
             fontWeight: "bold",
             color: "text",
           })}>School Name: {props.data.name}</h1>
+        <div className={grid({
+          gap: 6,
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 400px))",
+          gridAutoRows: "minmax(300px, 1fr)",
+        })}
+        >
+          <CourseList/>
+          <CourseCreate/>
+        </div>
+        <CreateCourseModal />
     </>
   );
 }

@@ -55,6 +55,5 @@ export function useAnchorProvider() {
 
 export function useProgram() {
   const provider = useAnchorProvider();
-  // console.log(IDL);
   return new Program<Educhain>(IDL as Educhain, provider);
 }

@@ -1,44 +1,37 @@
-import React, { useState } from 'react'
 import { css } from 'styled-system/css'
 import { vstack, hstack } from 'styled-system/patterns'
 import * as Dialog from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import { Text } from '~/components/ui/text'
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useModalsProvider } from '~/app/context/modals'
-import { SingleDatePicker } from '~/app/components/UI/datePicker'
 import { useProgram } from '../solana/solana-provider'
 import { useWallet } from '@solana/wallet-adapter-react'
-
-type Session = {
-  date: Date | null
-  duration: number
-}
 
 function CreateCourseModal() {
   const { CreateCourseModalContext } = useModalsProvider()
   const { open, setOpen } = CreateCourseModalContext
 
-  const [courseName, setCourseName] = useState<string>()
-  const [maxStudents, setMaxStudents] = useState<number>()
-  const [groupSize, setGroupSize] = useState<number>()
-  const [sessions, setSessions] = useState<Session[]>([])
-
   const program = useProgram()
   const wallet = useWallet()
 
-  const { control, handleSubmit } = useForm<{
-    sessions: Session[]
-  }>();
+  const { handleSubmit, register, reset } = useForm({
+    defaultValues: {
+      courseName: "",
+      maxStudents: 60,
+      groupSize: 3,
+      "admin-1": wallet.publicKey?.toBase58(),
+      "admin-2": "",
+    }
+  });
 
-  const onSubmit = (data: { sessions: Session[] }) => {
+  const onSubmit = async (data: any) => {
     console.log(data);
-    };
-
-  const handleAddSession = () => {
-    setSessions([...sessions, { date: null, duration: 60 }])
-  }
+    console.log(program);
+    reset();
+    setOpen(false);
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={() => setOpen(false)}>
@@ -56,65 +49,49 @@ function CreateCourseModal() {
               <Input
                 type="text"
                 placeholder="Course Name"
-                value={courseName}
-                onChange={(e) => setCourseName(e.target.value)}
+                {...register('courseName', {
+                  required: true,
+                  minLength: 3,
+                  maxLength: 20,
+                })}
               />
               <Input
                 type="number"
                 placeholder="Max Students"
-                value={maxStudents}
-                onChange={(e) => setMaxStudents(parseInt(e.target.value))}
+                {...register('maxStudents', {
+                  required: true,
+                  min: 1,
+                  max: 100,
+                })}
               />
               <Input
                 type="number"
                 placeholder="Group Size"
-                value={groupSize}
-                onChange={(e) => setGroupSize(parseInt(e.target.value))}
+                {...register('groupSize', {
+                  required: true,
+                  min: 1,
+                  max: 100,
+                })}
               />
 
               <Text variant="heading" alignSelf="flex-start">
-                Sessions:
+                Course Admins:
               </Text>
-              {sessions.map((session, index) => (
-                <div
-                  key={index}
-                  className={hstack({
-                    gap: 2,
-                    alignItems: "flex-start",
-                    justifyContent: "flex-start",
-                  })}
-                >
-                  <Controller
-                    name={`sessions.${index}.date`}
-                    control={control}
-                    render={({ field }) => (
-                      <SingleDatePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Select date"
-                      />
-                    )}
-                  />
-                  <Input
-                    placeholder="Duration (minutes)"
-                    value={session.duration}
-                    onChange={(e) => {
-                      const updatedSessions = [...sessions];
-                      updatedSessions[index].duration =
-                        parseInt(e.target.value) || 0;
-                      setSessions(updatedSessions);
-                    }}
-                    type="number"
-                  />
-                </div>
-              ))}
-              <Button
-                variant="subtle"
-                alignSelf="flex-start"
-                onClick={handleAddSession}
-              >
-                Add Session
-              </Button>
+              <Input
+                type="text"
+                placeholder="Course Admin"
+                {...register('admin-1', {
+                  required: true,
+                })}
+              />
+              <Input
+                type="text"
+                placeholder="Course Admin"
+                {...register('admin-2', {
+                  required: false,
+                })}
+              />
+
             </div>
             <div
               className={hstack({ gap: 2, justifyContent: "flex-end", pt: 4 })}

@@ -9,13 +9,16 @@ import { useModalsProvider } from '~/app/context/modals'
 import { useProgram } from '../solana/solana-provider'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { createCourseDataAccount } from '@api/educhain'
+import { CourseData } from '~/app/types/educhain'
+import { BN } from '@coral-xyz/anchor'
+import { PublicKey } from '@solana/web3.js'
 
-export type CourseData = {
-  courseName: string;
-  maxStudents: number;
-  groupSize: number;
-  admin1: string;
-  admin2?: string;
+type CourseDataForm = {
+  name: string,
+  maxStudents: number,
+  groupSize: number,
+  admin1: string,
+  admin2: string,
 }
 
 function CreateCourseModal() {
@@ -25,9 +28,9 @@ function CreateCourseModal() {
   const program = useProgram()
   const wallet = useWallet()
 
-  const { handleSubmit, register, reset } = useForm({
+  const { handleSubmit, register, reset } = useForm<CourseDataForm>({
     defaultValues: {
-      courseName: "",
+      name: "",
       maxStudents: 60,
       groupSize: 3,
       admin1: wallet.publicKey?.toBase58() || "",
@@ -35,9 +38,23 @@ function CreateCourseModal() {
     }
   });
 
-  const onSubmit = async (data: CourseData) => {
+  const onSubmit = async (data: CourseDataForm) => {
 
-    createCourseDataAccount(program, wallet, data);
+    const admins = [
+      new PublicKey(data.admin1),
+    ]
+    if (data.admin2 !== "") {
+      admins.push(new PublicKey(data.admin2))
+    }
+
+    const courseData: CourseData = {
+      name: data.name,
+      maxStudents: new BN(data.maxStudents),
+      groupSize: new BN(data.groupSize),
+      admins: admins,
+    }
+
+    createCourseDataAccount(program, wallet, courseData);
     reset();
     setOpen(false);
   };
@@ -58,7 +75,7 @@ function CreateCourseModal() {
               <Input
                 type="text"
                 placeholder="Course Name"
-                {...register('courseName', {
+                {...register('name', {
                   required: true,
                   minLength: 3,
                   maxLength: 20,
@@ -91,6 +108,9 @@ function CreateCourseModal() {
                 placeholder="Course Admin"
                 {...register('admin1', {
                   required: true,
+                  validate: (value) => {
+                    return value === wallet.publicKey?.toBase58()
+                  }
                 })}
               />
               <Input
@@ -98,6 +118,12 @@ function CreateCourseModal() {
                 placeholder="Course Admin"
                 {...register('admin2', {
                   required: false,
+                  validate: (value) => {
+                    if (value === "") {
+                      return true
+                    }
+                    return value === wallet.publicKey?.toBase58()
+                  }
                 })}
               />
 

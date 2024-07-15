@@ -15,6 +15,7 @@ import { useModalsProvider } from "~/app/context/modals";
 import CreateSchoolModal from "~/app/components/modals/createSchool";
 import AdminCourseCard from "~/app/components/cards/adminCourseCard";
 import CreateCourseModal from "~/app/components/modals/createCourse";
+import { CourseData, Infos } from "~/app/types/educhain";
 
 function CourseCreate() {
   const { CreateCourseModalContext } = useModalsProvider()
@@ -65,7 +66,7 @@ function CourseCreate() {
 function CourseList({schoolAddress}: {schoolAddress: PublicKey}) {
 
   const program = useProgram();
-  const [courses, setCourses] = useState([]);
+  const [courses, setCourses] = useState<Infos<CourseData>[]>([]);
 
   if (!program) {
     return null;
@@ -121,14 +122,14 @@ type schoolData = {
   coursesCounter: BN,
 }
 
-function SchoolData({schoolData, schoolAddress}: {schoolData: schoolData, schoolAddress: PublicKey}) {
+function SchoolData(props: {schoolData: schoolData, schoolAddress: PublicKey}) {
   return (
     <>
         <h1 className={css({
             fontSize: "4xl",
             fontWeight: "bold",
             color: "text",
-          })}>School Name: {schoolData.name} ({schoolAddress.toBase58()})</h1>
+          })}>School Name: {props.schoolData.name} ({props.schoolAddress.toBase58()})</h1>
           <hr
           className={css({
             width: "100%",
@@ -144,7 +145,7 @@ function SchoolData({schoolData, schoolAddress}: {schoolData: schoolData, school
           gridAutoRows: "minmax(300px, 1fr)",
         })}
         >
-          <CourseList schoolAddress={schoolAddress} />
+          <CourseList schoolAddress={props.schoolAddress} />
           <CourseCreate />
           <CreateCourseModal />
         </div>
@@ -162,8 +163,8 @@ function SchoolPage() {
         const fetchSchoolData = async () => {
             const data = await getSchoolInfos(program, wallet.publicKey as PublicKey);
             if (data) {
-                setSchoolData(data.schoolData);
-                setSchoolAddress(data.schoolAddress);
+                setSchoolData(data.account);
+                setSchoolAddress(data.publicKey);
             }
         };
         fetchSchoolData();
@@ -171,7 +172,7 @@ function SchoolPage() {
 
     return (
         <div className={css({p: 6})}>
-            {schoolData ? (
+            {schoolData && schoolAddress ? (
                 <SchoolData schoolData={schoolData} schoolAddress={schoolAddress}/>
             ) : (
                 <SchoolCreate program={program} wallet={wallet}/>

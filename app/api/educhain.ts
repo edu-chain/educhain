@@ -2,34 +2,39 @@ import { Connection, PublicKey, SystemProgram, Transaction, clusterApiUrl } from
 import { BN, Program } from "@coral-xyz/anchor";
 import { Educhain } from "@api/types/educhain";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { CourseData } from "~/app/components/modals/createCourse";
+import { Infos, SchoolData, CourseData } from "~/app/types/educhain";
 
-function getSchoolAddress(program: Program<Educhain>, publicKey: PublicKey) {
+const PROGRAM_ID = '7uHVPsgHpFmUCndwyBWA3wUF6jwmf6NX4UirwvJSbAZH';
+
+function getSchoolAddress(
+  ownerSchoolKey: PublicKey
+) : PublicKey {
+
   return PublicKey.findProgramAddressSync(
     [
       Buffer.from("school"),
-      publicKey.toBuffer()
+      ownerSchoolKey.toBuffer()
     ],
-    program.programId
-  );
+    new PublicKey(PROGRAM_ID)
+  )[0];
 }
 
 function getCourseAddress(
-  program: Program<Educhain>,
-  schoolKey: PublicKey,
+  schoolAddress: PublicKey,
   curCountCourseSchool: number
 ) {
   return PublicKey.findProgramAddressSync(
     [
       Buffer.from("course"),
-      schoolKey.toBuffer(),
+      schoolAddress.toBuffer(),
       new BN(curCountCourseSchool).toArrayLike(Buffer, 'le', 8),
     ],
-    program.programId
-  );
+    new PublicKey(PROGRAM_ID)
+  )[0];
 }
 
-async function sendTransation(transaction: Transaction, wallet: WalletContextState){
+async function sendTransation(
+  transaction: Transaction, wallet: WalletContextState){
 
   if (!wallet || !wallet.publicKey || !wallet.signTransaction) {
     throw new Error("Wallet error!");
@@ -45,13 +50,19 @@ async function sendTransation(transaction: Transaction, wallet: WalletContextSta
 
 export async function getSchoolInfos(
   program: Program<Educhain>,
-  publicKey: PublicKey,
-) {
-  const school = getSchoolAddress(program, publicKey);
+  ownerSchoolKey: PublicKey,
+) : Promise<Infos<SchoolData> | null> {
+  
+  const schoolAddress = getSchoolAddress(ownerSchoolKey);
 
   try {
-    const schoolData = await program.account.schoolDataAccount.fetch(school[0]);
-    return { schoolAddress: school[0], schoolData: schoolData };
+    const schoolData = await program.account.schoolDataAccount.fetch(schoolAddress);
+
+    return {
+      publicKey: schoolAddress,
+      account: schoolData
+    };
+
   } catch (error) {
     return null;
   }
@@ -60,9 +71,7 @@ export async function getSchoolInfos(
 export async function getCourseInfos(
   program: Program<Educhain>,
   schoolAddress: PublicKey
-) {
-
-  const lab = program.account.courseDataAccount;
+) : Promise<Infos<CourseData>[]> {
 
   const courses = await program.account.courseDataAccount.all([
     {
@@ -117,7 +126,7 @@ export async function createCourseDataAccount(
     throw new Error("Wallet error!");
   }
 
-  const adminPublicKeys = [courseData.admin1, courseData.admin2]
+  const adminPublicKeys = courseData.admins
     .map(admin => {
       if (admin) {
         return new PublicKey(admin);
@@ -132,15 +141,14 @@ export async function createCourseDataAccount(
   }
 
   const course = getCourseAddress(
-    program,
-    school.schoolAddress,
-    school.schoolData.coursesCounter.toNumber() + 1
+    school.publicKey,
+    school.account.coursesCounter.toNumber() + 1
   );
 
-  const transaction = await program.methods.createCourse(courseData.courseName, adminPublicKeys)
+  const transaction = await program.methods.createCourse(courseData.name, adminPublicKeys)
     .accounts({
-      school: school.schoolAddress,
-      course: course[0],
+      school: school.publicKey,
+      course: course,
       signer: wallet.publicKey,
     })
     .transaction();

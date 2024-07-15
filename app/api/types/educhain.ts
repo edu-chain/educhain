@@ -836,6 +836,30 @@ export type Educhain = {
       ],
       "accounts": [
         {
+          "name": "school",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  99,
+                  104,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school_owner",
+                "account": "courseDataAccount"
+              }
+            ]
+          }
+        },
+        {
           "name": "course",
           "pda": {
             "seeds": [
@@ -912,6 +936,54 @@ export type Educhain = {
           "type": "string"
         }
       ]
+    },
+    {
+      "name": "withdrawRevenues",
+      "discriminator": [
+        83,
+        255,
+        40,
+        183,
+        34,
+        111,
+        254,
+        126
+      ],
+      "accounts": [
+        {
+          "name": "school",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  99,
+                  104,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -1041,6 +1113,10 @@ export type Educhain = {
           },
           {
             "name": "school",
+            "type": "pubkey"
+          },
+          {
+            "name": "schoolOwner",
             "type": "pubkey"
           },
           {

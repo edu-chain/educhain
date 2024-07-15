@@ -4,27 +4,11 @@ import React from "react";
 import { css } from "styled-system/css";
 import { gridItem, hstack } from "styled-system/patterns";
 import { Progress } from "~/components/ui/progress";
-
-type Props = {
-  courseName: string;
-  studentsNumber: number;
-  maxGroupSize: number;
-  progress: number;
-};
-
-type CourseProps = {
-  account: {
-    id: BN,
-    school: PublicKey,
-    schoolOwner: PublicKey,
-    name: string,
-    admin: PublicKey[],
-  },
-  publicKey: PublicKey,
-}
+import { CourseData, Infos } from "~/app/types/educhain";
 
 
-function AdminCourseCard(props: CourseProps) {
+
+function AdminCourseCard(props: Infos<CourseData>) {
 
   return (
     <div
@@ -52,7 +36,7 @@ function AdminCourseCard(props: CourseProps) {
               _dark: { color: "white" },
             })}
           >
-            {props.account.name} [{props.account.id.toNumber()}]
+            {props.account.name} [{props.account.id?.toNumber()}]
           </h3>
         </div>
           <p>{props.publicKey.toBase58()}</p>
@@ -119,7 +103,7 @@ function AdminCourseCard(props: CourseProps) {
                 borderRadius: "full",
                 transition: "width 0.3s ease-in-out",
               })}
-              style={{ width: `${props.progress}%` }}
+              style={{ width: `${0}%` }}
             ></div>
           </div>
         </div>

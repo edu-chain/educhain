@@ -2,7 +2,7 @@
 
 import { useProgram } from "~/app/components/solana/solana-provider";
 import { useEffect, useState } from "react";
-import { getSchoolInfos } from "@api/educhain";
+import { getCourseInfos, getSchoolInfos } from "@api/educhain";
 import { WalletContextState, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { Button } from "~/components/ui/button";
@@ -62,14 +62,23 @@ function CourseCreate() {
   );
 }
 
-// Mock data for courses (replace with actual data fetching logic)
-const courses = [
-  { courseName: "Mathematics", studentsNumber: 30, maxGroupSize: 5, progress: 75 },
-  { courseName: "Physics", studentsNumber: 25, maxGroupSize: 4, progress: 60 },
-  { courseName: "Computer Science", studentsNumber: 35, maxGroupSize: 6, progress: 90 },
-];
+function CourseList({schoolAddress}: {schoolAddress: PublicKey}) {
 
-function CourseList() {
+  const program = useProgram();
+  const [courses, setCourses] = useState([]);
+
+  if (!program) {
+    return null;
+  }
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const courses = await getCourseInfos(program, schoolAddress);
+      setCourses(courses);
+    };
+    fetchCourses();
+  }, []);
+
   return (
     <>
     {courses.map((course, index) => (
@@ -112,14 +121,14 @@ type schoolData = {
   coursesCounter: BN,
 }
 
-function SchoolData(props: {data: schoolData}) {
+function SchoolData({schoolData, schoolAddress}: {schoolData: schoolData, schoolAddress: PublicKey}) {
   return (
     <>
         <h1 className={css({
             fontSize: "4xl",
             fontWeight: "bold",
             color: "text",
-          })}>School Name: {props.data.name}</h1>
+          })}>School Name: {schoolData.name} ({schoolAddress.toBase58()})</h1>
           <hr
           className={css({
             width: "100%",
@@ -135,7 +144,7 @@ function SchoolData(props: {data: schoolData}) {
           gridAutoRows: "minmax(300px, 1fr)",
         })}
         >
-          <CourseList />
+          <CourseList schoolAddress={schoolAddress} />
           <CourseCreate />
           <CreateCourseModal />
         </div>
@@ -147,12 +156,14 @@ function SchoolPage() {
     const program = useProgram();
     const wallet = useWallet();
     const [schoolData, setSchoolData] = useState<schoolData | null>(null);
+    const [schoolAddress, setSchoolAddress] = useState<PublicKey | null>(null);
 
     useEffect(() => {
         const fetchSchoolData = async () => {
             const data = await getSchoolInfos(program, wallet.publicKey as PublicKey);
             if (data) {
                 setSchoolData(data.schoolData);
+                setSchoolAddress(data.schoolAddress);
             }
         };
         fetchSchoolData();
@@ -161,7 +172,7 @@ function SchoolPage() {
     return (
         <div className={css({p: 6})}>
             {schoolData ? (
-                <SchoolData data={schoolData}/>
+                <SchoolData schoolData={schoolData} schoolAddress={schoolAddress}/>
             ) : (
                 <SchoolCreate program={program} wallet={wallet}/>
             )}

@@ -40,7 +40,7 @@ async function sendTransation(transaction: Transaction, wallet: WalletContextSta
   transaction.feePayer = wallet.publicKey;
   transaction.recentBlockhash = blockhash;
   const signedTransaction = await wallet.signTransaction(transaction);
-  const response = await connection.sendRawTransaction(signedTransaction.serialize());
+  await connection.sendRawTransaction(signedTransaction.serialize());
 }
 
 export async function getSchoolInfos(
@@ -55,6 +55,25 @@ export async function getSchoolInfos(
   } catch (error) {
     return null;
   }
+}
+
+export async function getCourseInfos(
+  program: Program<Educhain>,
+  schoolAddress: PublicKey
+) {
+
+  const lab = program.account.courseDataAccount;
+
+  const courses = await program.account.courseDataAccount.all([
+    {
+      memcmp: {
+        offset: 16,
+        bytes: schoolAddress.toBase58(),
+      },
+    },
+  ]);
+
+  return courses;
 }
 
 export async function createSchoolDataAccount(

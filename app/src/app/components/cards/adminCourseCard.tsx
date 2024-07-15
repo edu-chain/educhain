@@ -1,3 +1,5 @@
+import { PublicKey } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
 import React from "react";
 import { css } from "styled-system/css";
 import { gridItem, hstack } from "styled-system/patterns";
@@ -10,7 +12,20 @@ type Props = {
   progress: number;
 };
 
-function AdminCourseCard(props: Props) {
+type CourseProps = {
+  account: {
+    id: BN,
+    school: PublicKey,
+    schoolOwner: PublicKey,
+    name: string,
+    admin: PublicKey[],
+  },
+  publicKey: PublicKey,
+}
+
+
+function AdminCourseCard(props: CourseProps) {
+
   return (
     <div
       className={gridItem({
@@ -37,11 +52,12 @@ function AdminCourseCard(props: Props) {
               _dark: { color: "white" },
             })}
           >
-            {props.courseName}
+            {props.account.name} [{props.account.id.toNumber()}]
           </h3>
         </div>
+          <p>{props.publicKey.toBase58()}</p>
 
-        <div className={css({ mb: 4 })}>
+        <div className={css({ mb: 4, mt: 4 })}>
           <h4
             className={css({
               fontSize: "md",
@@ -61,7 +77,7 @@ function AdminCourseCard(props: Props) {
                 _dark: { color: "gray.400" },
               })}
             >
-              Students: {props.studentsNumber}
+              Students: <strong>TODO</strong>
             </li>
             <li
               className={css({
@@ -70,7 +86,7 @@ function AdminCourseCard(props: Props) {
                 _dark: { color: "gray.400" },
               })}
             >
-              Max Group Size: {props.maxGroupSize}
+              Max Group Size: <strong>TODO</strong>
             </li>
           </ul>
         </div>
@@ -86,7 +102,7 @@ function AdminCourseCard(props: Props) {
           >
             Overall Progress
           </span>
-          <Progress value={props.progress} min={0} max={100} />
+          <Progress value={0} min={0} max={100} />
           <div
             className={css({
               w: "full",

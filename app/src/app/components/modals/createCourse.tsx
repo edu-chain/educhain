@@ -10,8 +10,6 @@ import { useModalsProvider } from '~/app/context/modals'
 import { SingleDatePicker } from '~/app/components/UI/datePicker'
 import { useProgram } from '../solana/solana-provider'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { createCourseAccount } from '@api/educhain'
-import { PublicKey } from '@solana/web3.js'
 
 type Session = {
   date: Date | null
@@ -36,11 +34,7 @@ function CreateCourseModal() {
 
   const onSubmit = (data: { sessions: Session[] }) => {
     console.log(data);
-    createCourseAccount(program, wallet, {
-      name: courseName || "",
-      admins: [wallet.publicKey as PublicKey],
-    });
-  };
+    };
 
   const handleAddSession = () => {
     setSessions([...sessions, { date: null, duration: 60 }])

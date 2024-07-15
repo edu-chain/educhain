@@ -2,6 +2,11 @@
 
 import React, { ReactNode, createContext, useContext, useState } from 'react'
 
+interface ICreateSchoolModal {
+  open: boolean
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
+
 interface ICreateCourseModal {
   open: boolean
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
@@ -15,6 +20,7 @@ interface IAskGroupExchangeModal {
 type ModalsContextType = {
   CreateCourseModalContext: ICreateCourseModal;
   AskGroupExchangeModalContext: IAskGroupExchangeModal;
+  CreateSchoolModalContext: ICreateSchoolModal;
 };
 
 // Create a context for the smart contract wallet
@@ -31,6 +37,7 @@ export const ModalsProvider: React.FC<ModalsProviderProps> = ({
 }): JSX.Element => {
   const [openCreateCourseModal, setOpenCreateCourseModal] = useState<boolean>(false)
   const [openAskGroupExchangeModal, setOpenAskGroupExchangeModal] = useState<boolean>(false)
+  const [openCreateSchoolModal, setOpenCreateSchoolModal] = useState<boolean>(false)
 
   const CreateCourseModalContext = {
     open: openCreateCourseModal,
@@ -42,11 +49,17 @@ export const ModalsProvider: React.FC<ModalsProviderProps> = ({
     setOpen: setOpenAskGroupExchangeModal,
   }
 
+  const CreateSchoolModalContext = {
+    open: openCreateSchoolModal,
+    setOpen: setOpenCreateSchoolModal,
+  }
+
   return (
     <ModalsProviderContext.Provider
       value={{
         CreateCourseModalContext,
         AskGroupExchangeModalContext,
+        CreateSchoolModalContext,
       }}
     >
       {children}

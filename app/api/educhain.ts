@@ -25,7 +25,8 @@ export async function getSchoolDataAccount(
 
 export async function createSchoolDataAccount(
     program: Program<Educhain>,
-    wallet: WalletContextState
+    wallet: WalletContextState,
+    name: string
 ){
 
     if (!wallet || !wallet.publicKey || !wallet.signTransaction) {
@@ -44,7 +45,7 @@ export async function createSchoolDataAccount(
     
     const transaction = await program.methods
         .initializeSchool(
-            `${wallet.publicKey.toBase58().slice(0, 4)}...${wallet.publicKey.toBase58().slice(-4)} Academy`
+            name
         )
         .accounts({
             school: school,

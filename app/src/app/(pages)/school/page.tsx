@@ -2,7 +2,7 @@
 
 import { useProgram } from "~/app/components/solana/solana-provider";
 import { useEffect, useState } from "react";
-import { createSchoolDataAccount, getSchoolDataAccount } from "@api/educhain";
+import { getSchoolInfos } from "@api/educhain";
 import { WalletContextState, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { Button } from "~/components/ui/button";
@@ -80,7 +80,7 @@ function CourseList() {
 }
 
 
-function SchoolCreate(props: {program: Program<Educhain>, wallet: WalletContextState}) {
+function SchoolCreate({program, wallet}: {program: Program<Educhain>, wallet: WalletContextState}) {
 
   const { CreateSchoolModalContext } = useModalsProvider();
   const { setOpen } = CreateSchoolModalContext;
@@ -150,8 +150,10 @@ function SchoolPage() {
 
     useEffect(() => {
         const fetchSchoolData = async () => {
-            const data = await getSchoolDataAccount(program, wallet.publicKey as PublicKey);
-            setSchoolData(data);
+            const data = await getSchoolInfos(program, wallet.publicKey as PublicKey);
+            if (data) {
+                setSchoolData(data.schoolData);
+            }
         };
         fetchSchoolData();
     },[wallet.publicKey]);

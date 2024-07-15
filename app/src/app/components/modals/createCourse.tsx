@@ -8,6 +8,15 @@ import { useForm } from "react-hook-form";
 import { useModalsProvider } from '~/app/context/modals'
 import { useProgram } from '../solana/solana-provider'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { createCourseDataAccount } from '@api/educhain'
+
+export type CourseData = {
+  courseName: string;
+  maxStudents: number;
+  groupSize: number;
+  admin1: string;
+  admin2?: string;
+}
 
 function CreateCourseModal() {
   const { CreateCourseModalContext } = useModalsProvider()
@@ -21,14 +30,14 @@ function CreateCourseModal() {
       courseName: "",
       maxStudents: 60,
       groupSize: 3,
-      "admin-1": wallet.publicKey?.toBase58(),
-      "admin-2": "",
+      admin1: wallet.publicKey?.toBase58() || "",
+      admin2: "",
     }
   });
 
-  const onSubmit = async (data: any) => {
-    console.log(data);
-    console.log(program);
+  const onSubmit = async (data: CourseData) => {
+
+    createCourseDataAccount(program, wallet, data);
     reset();
     setOpen(false);
   };
@@ -80,14 +89,14 @@ function CreateCourseModal() {
               <Input
                 type="text"
                 placeholder="Course Admin"
-                {...register('admin-1', {
+                {...register('admin1', {
                   required: true,
                 })}
               />
               <Input
                 type="text"
                 placeholder="Course Admin"
-                {...register('admin-2', {
+                {...register('admin2', {
                   required: false,
                 })}
               />

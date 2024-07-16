@@ -5,12 +5,53 @@ import { css } from "styled-system/css";
 import { grid, gridItem } from "styled-system/patterns";
 import { useModalsProvider } from '~/app/context/modals'
 import CreateCourseModal from '~/app/components/modals/createCourse'
+import { PublicKey } from '@solana/web3.js';
+import { BN } from '@coral-xyz/anchor';
 
 // Mock data for courses (replace with actual data fetching logic)
 const courses = [
-  { courseName: "Mathematics", studentsNumber: 30, maxGroupSize: 5, progress: 75 },
-  { courseName: "Physics", studentsNumber: 25, maxGroupSize: 4, progress: 60 },
-  { courseName: "Computer Science", studentsNumber: 35, maxGroupSize: 6, progress: 90 },
+  {
+    publicKey: new PublicKey("AH71ahcm3SZaFkkZPYsdS1T2fs9PUikLSSSAhCU9iZAZ"),
+    account: {
+      id: new BN(1),
+      school: new PublicKey("EKvs5tTo6K5RiwTiNqzo1zwKSA7iDdZrDmLpfShFzeyL"),
+      schoolOwner: new PublicKey("wrkxrnzAL4ScwhVWncfbneKQLujTyiRiqnCVdcb3KC3"),
+      name: "First Course",
+      admins: [
+        new PublicKey("wrkxrnzAL4ScwhVWncfbneKQLujTyiRiqnCVdcb3KC3")
+      ],
+      sessionsCounter: new BN(0),
+      groupsCounter: new BN(0)
+    }
+  },
+  {
+    publicKey: new PublicKey("GuB5eAm2uvnyKmyAeb3zMypYX2e4EqVbARnUvSwzu598"),
+    account: {
+      id: new BN(2),
+      school: new PublicKey("EKvs5tTo6K5RiwTiNqzo1zwKSA7iDdZrDmLpfShFzeyL"),
+      schoolOwner: new PublicKey("wrkxrnzAL4ScwhVWncfbneKQLujTyiRiqnCVdcb3KC3"),
+      name: "Second School",
+      admins: [
+        new PublicKey("wrkxrnzAL4ScwhVWncfbneKQLujTyiRiqnCVdcb3KC3")
+      ],
+      sessionsCounter: new BN(0),
+      groupsCounter: new BN(0)
+    }
+  },
+  {
+    publicKey: new PublicKey("mjE8rzCMohaxWWCzSfXKvJyQwYqxKLy63gGadRrGg2t"),
+    account: {
+      id: new BN(3),
+      school: new PublicKey("EKvs5tTo6K5RiwTiNqzo1zwKSA7iDdZrDmLpfShFzeyL"),
+      schoolOwner: new PublicKey("wrkxrnzAL4ScwhVWncfbneKQLujTyiRiqnCVdcb3KC3"),
+      name: "Third Course",
+      admins: [
+        new PublicKey("wrkxrnzAL4ScwhVWncfbneKQLujTyiRiqnCVdcb3KC3")
+      ],
+      sessionsCounter: new BN(0),
+      groupsCounter: new BN(0)
+    }
+  }
 ];
 
 // Mock school name (replace with actual data fetching logic)

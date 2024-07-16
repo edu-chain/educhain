@@ -24,7 +24,7 @@ export function NavBar() {
         })
       }>
         <li className={linkStyle(pathname === '/school')}><Link href='/school'>School</Link></li>
-        <li className={linkStyle(pathname.startsWith('/course/'))}><Link href='/course/1'>Courses</Link></li>
+        <li className={linkStyle(pathname.startsWith('/courses'))}><Link href='/courses'>Courses</Link></li>
         <li className={linkStyle(pathname.startsWith('/student'))}><Link href='/student'>Student</Link></li>
       </ul>
     </div>

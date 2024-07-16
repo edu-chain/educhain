@@ -2,7 +2,15 @@ import { Connection, PublicKey, SystemProgram, Transaction, clusterApiUrl } from
 import { BN, Program } from "@coral-xyz/anchor";
 import { Educhain } from "@api/types/educhain";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { Infos, SchoolData, CourseData, SessionData, SessionAccounts } from "~/app/types/educhain";
+import { 
+  Infos,
+  SchoolData,
+  CourseData, 
+  SessionData, 
+  SessionAccounts, 
+  StudentSubscriptionDataAccount, 
+  StudentSubscriptionAccounts 
+} from "~/app/types/educhain";
 
 const PROGRAM_ID = 'EQTpUfQNeenySvPPvwYw9rfyjC6gPNhnR7YikL8Y41m9';
 
@@ -44,6 +52,20 @@ function getSessionAddress(
       schoolAddress.toBuffer(),
       new BN(courseId).toArrayLike(Buffer, 'le', 8),
       new BN(nextSessionId).toArrayLike(Buffer, 'le', 8),
+    ],
+    new PublicKey(PROGRAM_ID)
+  )[0];
+}
+
+function getStudentSubscriptionAddress(
+  studentAddress: PublicKey,
+  courseAddress: PublicKey,
+) {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("subscription"),
+      courseAddress.toBuffer(),
+      studentAddress.toBuffer(),
     ],
     new PublicKey(PROGRAM_ID)
   )[0];
@@ -133,6 +155,27 @@ export async function getSessionsInfos(
     return sessions;
   } catch (error) {
     return [];
+  }
+}
+
+export async function getStudentSubscriptionInfos(
+  program: Program<Educhain>,
+  studentAddress: PublicKey,
+  courseAddress: PublicKey
+) : Promise<StudentSubscriptionDataAccount | null> {
+
+  const studentSubscriptionAddress = getStudentSubscriptionAddress(
+    studentAddress,
+    courseAddress
+  );
+
+  try {
+    const studentSubscriptionData = await program.account.studentSubscriptionDataAccount.fetch(
+      studentSubscriptionAddress
+    );
+    return studentSubscriptionData;
+  } catch (error) {
+    return null;
   }
 }
 
@@ -242,4 +285,35 @@ export async function createSessionDataAccount(
     .transaction();
 
   sendTransation(transaction, wallet);
+}
+
+export async function subscribeToCourse(
+  program: Program<Educhain>,
+  wallet: WalletContextState,
+  courseAddress: PublicKey,
+  name: string
+) {
+
+  if (!wallet || !wallet.publicKey || !wallet.signTransaction) {
+    throw new Error("Wallet error!");
+  }
+
+  const studentSubscriptionAddress = getStudentSubscriptionAddress(wallet.publicKey, courseAddress);
+
+  const course = await program.account.courseDataAccount.fetch(courseAddress);
+
+  const studentSubscriptionAccounts: StudentSubscriptionAccounts = {
+    school: course.school,
+    course: courseAddress,
+    subscription: studentSubscriptionAddress,
+    signer: wallet.publicKey,
+  }
+
+  const transaction = await program.methods.studentSubscription(name)
+    .accounts(studentSubscriptionAccounts)
+    .transaction();
+
+  sendTransation(transaction, wallet);
+
+  return true;
 }

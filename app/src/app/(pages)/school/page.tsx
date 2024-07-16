@@ -2,7 +2,7 @@
 
 import { useProgram } from "~/app/components/solana/solana-provider";
 import { useEffect, useState } from "react";
-import { getCourseInfos, getSchoolInfos } from "@api/educhain";
+import { getCoursesInfos, getSchoolInfos } from "@api/educhain";
 import { WalletContextState, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { Button } from "~/components/ui/button";
@@ -74,7 +74,7 @@ function CourseList({schoolAddress}: {schoolAddress: PublicKey}) {
 
   useEffect(() => {
     const fetchCourses = async () => {
-      const courses = await getCourseInfos(program, schoolAddress);
+      const courses = await getCoursesInfos(program, schoolAddress);
       setCourses(courses);
     };
     fetchCourses();
@@ -88,7 +88,6 @@ function CourseList({schoolAddress}: {schoolAddress: PublicKey}) {
     </>
   );
 }
-
 
 function SchoolCreate({program, wallet}: {program: Program<Educhain>, wallet: WalletContextState}) {
 

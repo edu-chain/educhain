@@ -68,7 +68,7 @@ export async function getSchoolInfos(
   }
 }
 
-export async function getCourseInfos(
+export async function getCoursesInfos(
   program: Program<Educhain>,
   schoolAddress: PublicKey
 ) : Promise<Infos<CourseData>[]> {

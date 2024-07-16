@@ -21,6 +21,14 @@ type CourseData = {
   groupSize?: BN,
 }
 
+//TODO: rename course to courseAddress in rust program
+type SessionData = {
+  id?: BN,
+  course: PublicKey,
+  start: BN,
+  end: BN,
+}
+
 type Infos<T> = {
   publicKey: PublicKey,
   account: T

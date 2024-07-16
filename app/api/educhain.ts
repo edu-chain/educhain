@@ -85,6 +85,21 @@ export async function getCoursesInfos(
   return courses;
 }
 
+export async function getCourseInfos(
+  program: Program<Educhain>,
+  courseAddress: PublicKey
+) : Promise<Infos<CourseData> | null> {
+ try {
+  const courseData = await program.account.courseDataAccount.fetch(courseAddress);
+  return {
+    publicKey: courseAddress,
+    account: courseData
+  };
+ } catch (error) {
+  return null;
+ }
+}
+
 export async function createSchoolDataAccount(
   program: Program<Educhain>,
   wallet: WalletContextState,

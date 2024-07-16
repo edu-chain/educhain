@@ -50,7 +50,7 @@ pub mod educhain {
         ctx.accounts.session.id = ctx.accounts.course.sessions_counter;
         ctx.accounts.session.course = ctx.accounts.course.key();
         ctx.accounts.session.start = start;
-        ctx.accounts.session.start = end;
+        ctx.accounts.session.end = end;
 
         Ok(())
     }

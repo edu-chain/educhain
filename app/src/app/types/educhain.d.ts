@@ -33,3 +33,10 @@ type Infos<T> = {
   publicKey: PublicKey,
   account: T
 }
+
+type SessionAccounts = {
+  school: PublicKey,
+  course: PublicKey,
+  session: PublicKey,
+  signer: PublicKey,
+}

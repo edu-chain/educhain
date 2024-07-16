@@ -10,10 +10,13 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useProgram } from '~/app/components/solana/solana-provider';
 import { PublicKey } from '@solana/web3.js';
-import { getCourseInfos } from '@api/educhain';
-import { CourseData, Infos } from '~/app/types/educhain';
+import { createSessionDataAccount, getCourseInfos } from '@api/educhain';
+import { CourseData, Infos, SessionData } from '~/app/types/educhain';
 import Divider from '~/app/components/divider';
 import * as Table from '~/components/ui/table';
+import { useForm } from 'react-hook-form';
+import { BN } from '@coral-xyz/anchor';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 type Session = {
   id: string;
@@ -111,7 +114,74 @@ function CourseContent(course: Infos<CourseData>) {
         {course.account.name}
       </h1>
       <SessionsTable />
+      <Divider />
+      <h3>Create Session</h3>
+      <CreateSession {...course} />
     </div>
+  )
+}
+
+type SessionForm = {
+  name: string;
+  date: string;
+  hour: string;
+  duration: number;
+}
+
+function CreateSession(course: Infos<CourseData>) {
+  
+  const program = useProgram();
+  const wallet = useWallet();
+
+  const onSubmit = async (data: SessionForm) => {
+
+    const start = new Date(data.date + 'T' + data.hour);
+    const end = new Date(start.getTime() + data.duration * 60 * 1000);
+
+    const session: SessionData = {
+      course: course.publicKey,
+      start: new BN(start.getTime()),
+      end: new BN(end.getTime()),
+    }
+
+    if (!course.account.school) {
+      console.error("School address not found");
+      return;
+    }
+
+    await createSessionDataAccount(
+      program,
+      wallet,
+      session,
+      course.publicKey,
+      course.account.school
+    );
+  }
+
+  const { register, handleSubmit } = useForm<SessionForm>({
+    defaultValues: {
+      name: '',
+      date: '',
+      hour: '',
+      duration: 0,
+    }
+  })
+
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+    <Table.Root>
+      <Table.Body>
+        <Table.Row>
+          <Table.Cell><input type="text" placeholder="Name" {...register('name')} /></Table.Cell>
+          <Table.Cell><input type="date" placeholder="Date" {...register('date')} /></Table.Cell>
+          <Table.Cell><input type="time" placeholder="Time" {...register('hour')} /></Table.Cell>
+          <Table.Cell><input type="number" placeholder="Duration (minutes)" {...register('duration')} /></Table.Cell>
+          <Table.Cell><Button type="submit">Create Session</Button></Table.Cell>
+        </Table.Row>
+      </Table.Body>
+    </Table.Root>
+    </form>
   )
 }
 

@@ -2,7 +2,7 @@ import { Connection, PublicKey, SystemProgram, Transaction, clusterApiUrl } from
 import { BN, Program } from "@coral-xyz/anchor";
 import { Educhain } from "@api/types/educhain";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { Infos, SchoolData, CourseData } from "~/app/types/educhain";
+import { Infos, SchoolData, CourseData, SessionData, SessionAccounts } from "~/app/types/educhain";
 
 const PROGRAM_ID = '7uHVPsgHpFmUCndwyBWA3wUF6jwmf6NX4UirwvJSbAZH';
 
@@ -28,6 +28,22 @@ function getCourseAddress(
       Buffer.from("course"),
       schoolAddress.toBuffer(),
       new BN(curCountCourseSchool).toArrayLike(Buffer, 'le', 8),
+    ],
+    new PublicKey(PROGRAM_ID)
+  )[0];
+}
+
+function getSessionAddress(
+  schoolAddress: PublicKey,
+  courseId: number,
+  nextSessionId: number
+) {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("session"),
+      schoolAddress.toBuffer(),
+      new BN(courseId).toArrayLike(Buffer, 'le', 8),
+      new BN(nextSessionId).toArrayLike(Buffer, 'le', 8),
     ],
     new PublicKey(PROGRAM_ID)
   )[0];
@@ -169,4 +185,41 @@ export async function createCourseDataAccount(
     .transaction();
 
     sendTransation(transaction, wallet);
+}
+
+export async function createSessionDataAccount(
+  program: Program<Educhain>,
+  wallet: WalletContextState,
+  sessionData: SessionData,
+  courseAddress: PublicKey,
+  schoolAddress: PublicKey,
+) {
+
+  if (!wallet || !wallet.publicKey || !wallet.signTransaction) {
+    throw new Error("Wallet error!");
+  }
+
+  const course = await program.account.courseDataAccount.fetch(courseAddress);
+
+  const sessionAddress = getSessionAddress(
+    schoolAddress,
+    course.id.toNumber(),
+    course.sessionsCounter.toNumber() + 1
+  );
+  
+  const sessionsAccounts: SessionAccounts = {
+    school: schoolAddress,
+    course: courseAddress,
+    signer: wallet.publicKey,
+    session: sessionAddress,
+  }
+  
+  const transaction = await program.methods.createSession(
+    sessionData.start,
+    sessionData.end
+  )
+    .accounts(sessionsAccounts)
+    .transaction();
+
+  sendTransation(transaction, wallet);
 }

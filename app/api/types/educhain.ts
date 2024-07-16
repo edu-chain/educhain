@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/educhain.json`.
  */
 export type Educhain = {
-  "address": "7uHVPsgHpFmUCndwyBWA3wUF6jwmf6NX4UirwvJSbAZH",
+  "address": "EQTpUfQNeenySvPPvwYw9rfyjC6gPNhnR7YikL8Y41m9",
   "metadata": {
     "name": "educhain",
     "version": "0.1.0",

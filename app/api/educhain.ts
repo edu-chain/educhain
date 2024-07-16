@@ -4,7 +4,7 @@ import { Educhain } from "@api/types/educhain";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { Infos, SchoolData, CourseData, SessionData, SessionAccounts } from "~/app/types/educhain";
 
-const PROGRAM_ID = '7uHVPsgHpFmUCndwyBWA3wUF6jwmf6NX4UirwvJSbAZH';
+const PROGRAM_ID = 'EQTpUfQNeenySvPPvwYw9rfyjC6gPNhnR7YikL8Y41m9';
 
 function getSchoolAddress(
   ownerSchoolKey: PublicKey
@@ -114,6 +114,26 @@ export async function getCourseInfos(
  } catch (error) {
   return null;
  }
+}
+
+export async function getSessionsInfos(
+  program: Program<Educhain>,
+  courseAddress: PublicKey
+) : Promise<Infos<SessionData>[]> {
+
+  try {
+    const sessions = await program.account.sessionDataAccount.all([
+      {
+      memcmp: {
+        offset: 16,
+        bytes: courseAddress.toBase58(),
+      },
+      },
+    ]);
+    return sessions;
+  } catch (error) {
+    return [];
+  }
 }
 
 export async function createSchoolDataAccount(

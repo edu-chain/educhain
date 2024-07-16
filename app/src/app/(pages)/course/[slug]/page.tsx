@@ -1,20 +1,22 @@
 "use client"
 
-import React, { useEffect } from 'react';
-import { css } from "styled-system/css";
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import SessionMap from '~/app/components/sessionsMap';
-import { Button } from '~/components/ui/button';
-import { SessionStatus } from '~/app/types/all';
-import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useProgram } from '~/app/components/solana/solana-provider';
-import { PublicKey } from '@solana/web3.js';
-import { createSessionDataAccount, getCourseInfos } from '@api/educhain';
-import { CourseData, Infos, SessionData } from '~/app/types/educhain';
-import Divider from '~/app/components/divider';
-import * as Table from '~/components/ui/table';
 import { useForm } from 'react-hook-form';
+
+import { css } from "styled-system/css";
+
+import SessionMap from '~/app/components/sessionsMap';
+import Divider from '~/app/components/divider';
+import { useProgram } from '~/app/components/solana/solana-provider';
+import { Button } from '~/components/ui/button';
+import * as Table from '~/components/ui/table';
+import { SessionStatus } from '~/app/types/all';
+
+import { PublicKey } from '@solana/web3.js';
+import { createSessionDataAccount, getCourseInfos, getSessionsInfos } from '@api/educhain';
+import { CourseData, Infos, SessionData } from '~/app/types/educhain';
 import { BN } from '@coral-xyz/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
 
@@ -73,7 +75,17 @@ function MockCourse() {
   )
 }
 
-function SessionsTable() {
+function SessionsTable(sessions: Infos<SessionData>[]) {
+
+  const sessionsArray = Object.values(sessions);
+
+  const minutesDelta = (start: BN, end: BN) => {
+    const startDate = new Date(start.toNumber());
+    const endDate = new Date(end.toNumber());
+    const delta = endDate.getTime() - startDate.getTime();
+    return Math.floor(delta / 60 / 1000);
+  }
+
   return (
     <Table.Root>
       <Table.Head>
@@ -86,20 +98,29 @@ function SessionsTable() {
         </Table.Row>
       </Table.Head>
       <Table.Body>
-        {courseData.sessions.map((session) => (
-          <Table.Row key={session.id}>
-            <Table.Cell>{session.name}</Table.Cell>
-            <Table.Cell><input type="date" /></Table.Cell>
-            <Table.Cell><input type="time" /></Table.Cell>
-            <Table.Cell><input type="number" /></Table.Cell>
-            <Table.Cell>{session.status}</Table.Cell>
+        {sessionsArray.map((session) => (
+          <Table.Row key={session.publicKey.toBase58()}>
+            <Table.Cell>No Name</Table.Cell>
+            <Table.Cell>{new Date(session.account.start.toNumber()).toISOString().split('T')[0]}</Table.Cell>
+            <Table.Cell>{new Date(session.account.start.toNumber()).toTimeString().split(" ")[0]}</Table.Cell>
+            <Table.Cell>{minutesDelta(session.account.start, session.account.end)}</Table.Cell>
+            <Table.Cell>No Status</Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>
     </Table.Root>
   )
 }
+
 function CourseContent(course: Infos<CourseData>) {
+  const [sessions, setSessions] = useState<Infos<SessionData>[]>([]);
+  
+  const program = useProgram();
+
+  useEffect(() => {
+    getSessionsInfos(program, course.publicKey).then(setSessions);
+  }, [course.publicKey]);
+
   return (
     <div className={css({ p: 6 })}>
       <h1
@@ -113,7 +134,7 @@ function CourseContent(course: Infos<CourseData>) {
       >
         {course.account.name}
       </h1>
-      <SessionsTable />
+      <SessionsTable {...sessions} />
       <Divider />
       <h3>Create Session</h3>
       <CreateSession {...course} />
@@ -173,10 +194,28 @@ function CreateSession(course: Infos<CourseData>) {
     <Table.Root>
       <Table.Body>
         <Table.Row>
-          <Table.Cell><input type="text" placeholder="Name" {...register('name')} /></Table.Cell>
-          <Table.Cell><input type="date" placeholder="Date" {...register('date')} /></Table.Cell>
-          <Table.Cell><input type="time" placeholder="Time" {...register('hour')} /></Table.Cell>
-          <Table.Cell><input type="number" placeholder="Duration (minutes)" {...register('duration')} /></Table.Cell>
+          <Table.Cell>
+            <input type="text" placeholder="Name" {...register('name', { required: true })}/>
+          </Table.Cell>
+          <Table.Cell>
+            <input type="date" placeholder="Date" {...register('date', {
+              required: true,
+              validate: {
+                value: (value) => new Date(value) >= new Date()
+              }
+            })} />
+          </Table.Cell>
+          <Table.Cell>
+            <input type="time" placeholder="Time" {...register('hour', {
+              required: true,
+            })} />
+          </Table.Cell>
+          <Table.Cell><input type="number" {...register('duration', {
+            required: true,
+            validate: {
+              value: (value) => value > 0
+            }
+          })} /></Table.Cell>
           <Table.Cell><Button type="submit">Create Session</Button></Table.Cell>
         </Table.Row>
       </Table.Body>

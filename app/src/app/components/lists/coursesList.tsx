@@ -7,7 +7,7 @@ import CourseCardSubscription from "../cards/courseCardSubscription";
 
 export default function CoursesList() {
 
-  const { coursesList, loading, errorMessage } = useCourses();
+  const { coursesList, loading, errorMessage } = useCourses({type: 'all'});
 
   if (errorMessage) {
     return <div>{errorMessage}</div>;

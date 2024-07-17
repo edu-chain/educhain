@@ -40,7 +40,6 @@ export default function CourseCardSubscription(
   useEffect(() => {
     program.account.schoolDataAccount.fetch(course.account.school)
       .then((school) => {
-        console.log(school);
         setSchool(school.name);
         getStudentSubscriptionInfos(
           program,

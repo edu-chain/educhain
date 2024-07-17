@@ -102,3 +102,19 @@ type WithdrawalAccounts = {
   school: PublicKey,
   signer: PublicKey,
 }
+
+/*
+ * Attendance Types
+ */
+type AttendanceAccountData = {
+  session: PublicKey,
+  student: PublicKey,
+}
+
+type AttendanceAccounts = {
+  course: PublicKey,
+  subscription: PublicKey,
+  session: PublicKey,
+  attendance: PublicKey,
+  signer: PublicKey,
+}

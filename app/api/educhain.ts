@@ -10,7 +10,9 @@ import {
   SessionAccounts, 
   StudentSubscriptionDataAccount, 
   StudentSubscriptionAccounts, 
-  WithdrawalAccounts
+  WithdrawalAccounts,
+  AttendanceAccountData,
+  AttendanceAccounts
 } from "~/app/types/educhain";
 
 const PROGRAM_ID = 'EQTpUfQNeenySvPPvwYw9rfyjC6gPNhnR7YikL8Y41m9';
@@ -66,6 +68,20 @@ function getStudentSubscriptionAddress(
     [
       Buffer.from("subscription"),
       courseAddress.toBuffer(),
+      studentAddress.toBuffer(),
+    ],
+    new PublicKey(PROGRAM_ID)
+  )[0];
+}
+
+function getAttendanceAddress(
+  sessionAddress: PublicKey,
+  studentAddress: PublicKey,
+) {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("attendance"),
+      sessionAddress.toBuffer(),
       studentAddress.toBuffer(),
     ],
     new PublicKey(PROGRAM_ID)
@@ -128,15 +144,99 @@ export async function getCourseInfos(
   program: Program<Educhain>,
   courseAddress: PublicKey
 ) : Promise<Infos<CourseData> | null> {
- try {
-  const courseData = await program.account.courseDataAccount.fetch(courseAddress);
+  try {
+    const courseData = await program.account.courseDataAccount.fetch(courseAddress);
   return {
     publicKey: courseAddress,
     account: courseData
   };
- } catch (error) {
-  return null;
- }
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function getAttendanceInfosFromStudentAndCourse(
+  program: Program<Educhain>,
+  courseAddress: PublicKey,
+  studentAddress: PublicKey
+) : Promise<Infos<AttendanceAccountData | null>[]> {
+
+  const sessions = await getSessionsInfosFromCourse(program, courseAddress);
+  const attendancesAddresses = sessions
+    .map(session => getAttendanceAddress(session.publicKey, studentAddress));
+
+  const attendances = await program.account.studentAttendanceProofDataAccount.fetchMultiple(
+    attendancesAddresses
+  );
+
+  return attendances.map((attendance, index) => ({
+    publicKey: attendancesAddresses[index],
+    account: attendance
+  }));
+}
+
+export async function getCoursesInfosFromSchool(
+  program: Program<Educhain>,
+  schoolAddress: PublicKey
+) : Promise<Infos<CourseData>[]> {
+  try {
+    const courses = await program.account.courseDataAccount.all([
+      {
+        memcmp: {
+          offset: 16,
+          bytes: schoolAddress.toBase58(),
+        },
+      },
+    ]);
+    return courses;
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function getCoursesInfosFromStudent(
+  program: Program<Educhain>,
+  studentAddress: PublicKey
+) : Promise<Infos<CourseData>[]> {
+
+  const subscriptions = await program.account.studentSubscriptionDataAccount.all(
+    [
+    {
+      memcmp: {
+        offset: 40,
+        bytes: studentAddress.toBase58(),
+      },
+    },
+  ]
+);
+
+  const courses = await program.account.courseDataAccount.fetchMultiple(
+    subscriptions.map(subscription => subscription.account.course)
+  );
+
+  const coursesMapped = courses.map((course, index) => ({
+    publicKey: subscriptions[index].account.course,
+    account: course
+  }));
+
+  return coursesMapped as Infos<CourseData>[];
+}
+
+export async function getSessionsInfosFromCourse(
+  program: Program<Educhain>,
+  courseAddress: PublicKey
+) : Promise<Infos<SessionData>[]> {
+
+  const sessions = await program.account.sessionDataAccount.all([
+    {
+      memcmp: {
+        offset: 16,
+        bytes: courseAddress.toBase58(),
+      },
+    },
+  ]);
+
+  return sessions;
 }
 
 export async function getSessionsInfos(
@@ -338,4 +438,40 @@ export async function withdrawal(
     .transaction();
 
   sendTransation(transaction, wallet);
+}
+
+export async function signAttendance(
+  program: Program<Educhain>,
+  courseAddress: PublicKey,
+  sessionAddress: PublicKey,
+  signer: WalletContextState,
+) {
+
+  if (!signer || !signer.publicKey || !signer.signTransaction) {
+    throw new Error("Wallet error!");
+  }
+
+  const subscriptionAddress = getStudentSubscriptionAddress(
+    signer.publicKey,
+    courseAddress
+  );
+
+  const attendanceAddress = getAttendanceAddress(
+    sessionAddress,
+    signer.publicKey
+  );
+
+  const attendanceAccounts: AttendanceAccounts = {
+    course: courseAddress,
+    session: sessionAddress,
+    subscription: subscriptionAddress,
+    attendance: attendanceAddress,
+    signer: signer.publicKey,
+  }
+
+  const transaction = await program.methods.studentAttendance()
+    .accounts(attendanceAccounts)
+    .transaction();
+
+  sendTransation(transaction, signer);
 }

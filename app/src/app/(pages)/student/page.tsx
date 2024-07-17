@@ -1,5 +1,5 @@
 import React from 'react'
-import CourseCard from '~/app/components/cards/courseCard';
+import CourseStudentCard from '~/app/components/cards/courseStudentCard';
 import { css } from "styled-system/css";
 import { grid, gridItem } from "styled-system/patterns";
 import Link from 'next/link';
@@ -33,7 +33,7 @@ function StudentDashboard() {
         })}
       >
         {courses.map((course, index) => (
-          <CourseCard key={index} {...course} />
+          <CourseStudentCard key={index} {...course} />
         ))}
         <Link href="/find-courses" className={css({ textDecoration: "none" })}>
           <div

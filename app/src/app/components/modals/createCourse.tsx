@@ -1,17 +1,19 @@
+import { useForm } from "react-hook-form";
+import { PublicKey } from '@solana/web3.js'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { BN } from '@coral-xyz/anchor'
+import { createCourseDataAccount } from '@api/educhain'
+import { CourseData } from '~/app/types/educhain'
+
 import { css } from 'styled-system/css'
 import { vstack, hstack } from 'styled-system/patterns'
+
+import { useProgram } from "~/app/components/solana/solana-provider";
 import * as Dialog from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import { Text } from '~/components/ui/text'
-import { useForm } from "react-hook-form";
 import { useModalsProvider } from '~/app/context/modals'
-import { useProgram } from '../solana/solana-provider'
-import { useWallet } from '@solana/wallet-adapter-react'
-import { createCourseDataAccount } from '@api/educhain'
-import { CourseData } from '~/app/types/educhain'
-import { BN } from '@coral-xyz/anchor'
-import { PublicKey } from '@solana/web3.js'
 
 type CourseDataForm = {
   name: string,

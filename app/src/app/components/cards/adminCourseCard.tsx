@@ -1,16 +1,18 @@
 import React from "react";
+import Link from "next/link";
+import { CourseData, Infos } from "~/app/types/educhain";
+
 import { css } from "styled-system/css";
 import { gridItem, hstack } from "styled-system/patterns";
+
 import { Progress } from "~/components/ui/progress";
-import { CourseData, Infos } from "~/app/types/educhain";
-import Link from "next/link";
 
 
 
 function AdminCourseCard(props: Infos<CourseData>) {
 
   return (
-    <Link href={`/course/${props.publicKey.toBase58()}`}>
+    <Link href={`/admin/course/${props.publicKey.toBase58()}`}>
       <div
         className={gridItem({
           colSpan: 1,

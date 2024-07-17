@@ -2,11 +2,11 @@
 
 import { useProgram } from "~/app/components/solana/solana-provider";
 import { useEffect, useState } from "react";
-import { getCoursesInfos, getSchoolInfos } from "@api/educhain";
+import { getCoursesInfos, getSchoolInfos, withdrawal } from "@api/educhain";
 import { WalletContextState, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { Button } from "~/components/ui/button";
-import { vstack, gridItem, grid } from "styled-system/patterns";
+import { vstack, gridItem, grid, hstack } from "styled-system/patterns";
 import { School } from "lucide-react";
 import { css } from "styled-system/css";
 import { BN, Program } from "@coral-xyz/anchor";
@@ -16,6 +16,8 @@ import CreateSchoolModal from "~/app/components/modals/createSchool";
 import AdminCourseCard from "~/app/components/cards/adminCourseCard";
 import CreateCourseModal from "~/app/components/modals/createCourse";
 import { CourseData, Infos } from "~/app/types/educhain";
+import { Badge } from "~/components/ui/badge";
+import { getBalance } from "~/app/components/solana/solana.helpers";
 
 function CourseCreate() {
   const { CreateCourseModalContext } = useModalsProvider()
@@ -122,13 +124,61 @@ type schoolData = {
 }
 
 function SchoolData(props: {schoolData: schoolData, schoolAddress: PublicKey}) {
+
+  const [balance, setBalance] = useState<number>(0);
+
+  const program = useProgram();
+  const wallet = useWallet();
+
+  const fetchBalance = async () => {
+    const balance = await getBalance(props.schoolAddress);
+    setBalance(Number(balance.toFixed(2)));
+  };
+
+  const handleWithdrawal = async () => {
+    await withdrawal(program, wallet, props.schoolAddress);
+  };
+
+  useEffect(() => {
+    const mount = async () => {
+      await fetchBalance();
+    };
+    mount();
+  }, []);
+
   return (
     <>
+      <div className={hstack({
+        justifyContent: "space-between",
+        alignItems: "center",
+        width: "100%",
+      })}>
         <h1 className={css({
-            fontSize: "4xl",
+          fontSize: "4xl",
+          fontWeight: "bold",
+          color: "text",
+        })}>{props.schoolData.name}</h1>
+       {balance > 0 ? <Badge
+          size="lg"
+          variant="solid"
+          onClick={balance > 0 ? handleWithdrawal : undefined}
+          className={css({
+            cursor: "pointer",
+            _hover: {
+              bg: "purple",
+              transform: "scale(1.1)",
+            }
+          })}
+          >Withdrawal: {balance.toFixed(2)} SOL</Badge> : <Badge
+          size="lg"
+          variant="outline"
+          >No revenue to withdraw</Badge>}
+        </div>
+          <p className={css({
+            fontSize: "xl",
             fontWeight: "bold",
             color: "text",
-          })}>School Name: {props.schoolData.name} ({props.schoolAddress.toBase58()})</h1>
+          })}>{props.schoolAddress.toBase58()}</p>
           <hr
           className={css({
             width: "100%",
@@ -153,8 +203,10 @@ function SchoolData(props: {schoolData: schoolData, schoolAddress: PublicKey}) {
 }
 
 function SchoolPage() {
+
     const program = useProgram();
     const wallet = useWallet();
+    
     const [schoolData, setSchoolData] = useState<schoolData | null>(null);
     const [schoolAddress, setSchoolAddress] = useState<PublicKey | null>(null);
 

@@ -94,3 +94,11 @@ type StudentSubscriptionAccounts = {
   subscription: PublicKey,
   signer: PublicKey,
 }
+
+/*
+ * Withdrawal Types
+ */
+type WithdrawalAccounts = {
+  school: PublicKey,
+  signer: PublicKey,
+}

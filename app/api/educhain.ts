@@ -9,7 +9,8 @@ import {
   SessionData, 
   SessionAccounts, 
   StudentSubscriptionDataAccount, 
-  StudentSubscriptionAccounts 
+  StudentSubscriptionAccounts, 
+  WithdrawalAccounts
 } from "~/app/types/educhain";
 
 const PROGRAM_ID = 'EQTpUfQNeenySvPPvwYw9rfyjC6gPNhnR7YikL8Y41m9';
@@ -316,4 +317,25 @@ export async function subscribeToCourse(
   sendTransation(transaction, wallet);
 
   return true;
+}
+
+export async function withdrawal(
+  program: Program<Educhain>,
+  wallet: WalletContextState,
+  schoolAddress: PublicKey,
+) {
+  if (!wallet || !wallet.publicKey || !wallet.signTransaction) {
+    throw new Error("Wallet error!");
+  }
+
+  const withdrawalAccounts: WithdrawalAccounts = {
+    school: schoolAddress,
+    signer: wallet.publicKey,
+  }
+
+  const transaction = await program.methods.withdrawRevenues()
+    .accounts(withdrawalAccounts)
+    .transaction();
+
+  sendTransation(transaction, wallet);
 }

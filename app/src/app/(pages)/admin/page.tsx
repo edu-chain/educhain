@@ -1,92 +1,182 @@
-"use client"
-import React from 'react'
-import AdminCourseCard from '~/app/components/cards/adminCourseCard';
+'use client';
+
+import { useEffect, useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
+import { getSchoolInfos, withdrawal } from "@api/educhain";
+import { SchoolAccountData } from "~/app/types/educhain";
+
+import { vstack, grid, hstack } from "styled-system/patterns";
 import { css } from "styled-system/css";
-import { grid, gridItem } from "styled-system/patterns";
-import { useModalsProvider } from '~/app/context/modals'
-import CreateCourseModal from '~/app/components/modals/createCourse'
 
-// Mock data for courses (replace with actual data fetching logic)
-const courses = [
-  { courseName: "Mathematics", studentsNumber: 30, maxGroupSize: 5, progress: 75 },
-  { courseName: "Physics", studentsNumber: 25, maxGroupSize: 4, progress: 60 },
-  { courseName: "Computer Science", studentsNumber: 35, maxGroupSize: 6, progress: 90 },
-];
+import { useModalsProvider } from "~/app/context/modals";
+import CreateSchoolModal from "~/app/components/modals/createSchool";
+import CreateCourseModal from "~/app/components/modals/createCourse";
+import CourseCreate from "~/app/components/cards/courseCreateCard";
+import AdminCoursesList from "~/app/components/lists/adminCoursesList";
+import { useProgram } from "~/app/components/solana/solana-provider";
+import { getBalance } from "~/app/components/solana/solana.helpers";
+import { School } from "lucide-react";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import Loading from "~/app/components/loading";
 
-// Mock school name (replace with actual data fetching logic)
-const schoolName = "Acme University";
+function SchoolCreate() {
 
-function AdminDashboard() {
-  const { CreateCourseModalContext } = useModalsProvider()
-  const { setOpen } = CreateCourseModalContext
+  const { CreateSchoolModalContext } = useModalsProvider();
+  const { setOpen } = CreateSchoolModalContext;
 
   return (
-    <div className={css({ p: 6 })}>
-      <h1
-        className={css({
-          fontSize: "2xl",
+    <div className={vstack({
+      gap: "20",
+      alignItems: "center",
+      justifyContent: "center",
+      height: "100vh"
+  })}>
+      <h1 className={css({
+          fontSize: "4xl",
           fontWeight: "bold",
-          mb: 6,
-          color: "gray.800",
-          _dark: { color: "white" },
-        })}
-      >
-        {schoolName} Courses
-      </h1>
-      <div
-        className={grid({
-          gap: 6,
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 400px))",
-          gridAutoRows: "minmax(300px, 1fr)",
-        })}
-      >
-        {courses.map((course, index) => (
-          <AdminCourseCard key={index} {...course} />
-        ))}
-        <div
-          onClick={() => setOpen(true)}
-          className={gridItem({
-            colSpan: 1,
-            rowSpan: 1,
-            h: "full",
-            borderRadius: "md",
-            overflow: "hidden",
-            boxShadow: "md",
-            bg: "gray.100",
-            _dark: { bg: "gray.700" },
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            cursor: "pointer",
-            transition: "all 0.2s",
-            _hover: { transform: "scale(1.05)" },
-          })}
-        >
-          <span
-            className={css({
-              fontSize: "4xl",
-              color: "blue.500",
-              mb: 2,
-            })}
-          >
-            +
-          </span>
-          <span
-            className={css({
-              fontSize: "xl",
-              fontWeight: "bold",
-              color: "gray.800",
-              _dark: { color: "white" },
-            })}
-          >
-            Create Course
-          </span>
-        </div>
-      </div>
-      <CreateCourseModal />
+          color: "text"
+      })}>Ce compte n'a pas d'école associée</h1>
+      <Button onClick={() => setOpen(true)} size={"2xl"}>
+          Créer une école
+          <School/>
+      </Button>
+      <CreateSchoolModal />
     </div>
   );
 }
 
-export default AdminDashboard
+function SchoolData(
+  {schoolData, schoolAddress}:
+  {schoolData: SchoolAccountData, schoolAddress: PublicKey}
+) {
+
+  const [balance, setBalance] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const program = useProgram();
+  const wallet = useWallet();
+
+  const fetchBalance = async () => {
+    const balance = await getBalance(schoolAddress);
+    setBalance(Number(balance.toFixed(2)));
+  };
+
+  const handleWithdrawal = async () => {
+    await withdrawal(program, wallet, schoolAddress);
+  };
+
+  useEffect(() => {
+    const mount = async () => {
+      await fetchBalance();
+      setIsLoading(false);
+    };
+    mount();
+  }, []);
+
+  return (
+    <>
+      {
+        isLoading ?
+          <Loading />
+        :
+      <>
+        <div className={hstack({
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
+        })}>
+          <h1 className={css({
+            fontSize: "4xl",
+            fontWeight: "bold",
+            color: "text",
+          })}>{schoolData.name}</h1>
+          {
+            balance > 0 ? 
+              <Badge
+                size="lg"
+                variant="solid"
+                onClick={balance > 0 ? handleWithdrawal : undefined}
+                className={css({
+                  cursor: "pointer",
+                  _hover: {
+                    bg: "purple",
+                    transform: "scale(1.1)",
+                  }
+                })}
+              >Withdrawal: {balance.toFixed(2)} SOL</Badge>
+            : 
+              <Badge
+                size="lg"
+                variant="outline"
+              >No revenue to withdraw</Badge>
+          }
+        </div>
+        <p className={css({
+            fontSize: "xl",
+            fontWeight: "bold",
+            color: "text",
+        })}>{schoolAddress.toBase58()}</p>
+        <hr
+        className={css({
+          width: "100%",
+          height: "5px",
+          backgroundColor: "ui.background",
+          border: "none",
+          margin: "10px 0",
+        })}/>
+        <div className={grid({
+            gap: 6,
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 400px))",
+            gridAutoRows: "minmax(300px, 1fr)",
+          })}
+          >
+            <AdminCoursesList schoolAddress={schoolAddress} />
+            <CourseCreate />
+        </div>
+      </>
+      }
+      <CreateCourseModal />
+    </>
+  );
+}
+
+function SchoolPage() {
+
+  const program = useProgram();
+  const wallet = useWallet();
+  
+  const [schoolData, setSchoolData] = useState<SchoolAccountData | null>(null);
+  const [schoolAddress, setSchoolAddress] = useState<PublicKey | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSchoolData = async () => {
+      const data = await getSchoolInfos(program, wallet.publicKey as PublicKey);
+      if (data) {
+        setSchoolData(data.account);
+        setSchoolAddress(data.publicKey);
+      }
+      setIsLoading(false);
+    };
+    fetchSchoolData();
+  },[wallet.publicKey]);
+  
+
+  return (
+    <div className={css({p: 6})}>
+      {
+        isLoading ?
+          <Loading />
+        :
+        schoolData && schoolAddress ?
+          <SchoolData schoolData={schoolData} schoolAddress={schoolAddress}/>
+        : 
+          <SchoolCreate/>
+      }
+    </div>
+  );
+}
+
+export default SchoolPage;

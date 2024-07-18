@@ -1,40 +1,65 @@
-import React, { useState } from 'react'
+import { useForm } from "react-hook-form";
+import { PublicKey } from '@solana/web3.js'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { BN } from '@coral-xyz/anchor'
+import { createCourseDataAccount } from '@api/educhain'
+import { CourseData } from '~/app/types/educhain'
+
 import { css } from 'styled-system/css'
 import { vstack, hstack } from 'styled-system/patterns'
+
+import { useProgram } from "~/app/components/solana/solana-provider";
 import * as Dialog from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import { Text } from '~/components/ui/text'
-import { SelectComp } from '../UI/select'
-import { useForm, Controller } from "react-hook-form";
 import { useModalsProvider } from '~/app/context/modals'
-import { SingleDatePicker } from '~/app/components/UI/datePicker'
 
-type Session = {
-  date: Date | null
-  duration: number
+type CourseDataForm = {
+  name: string,
+  maxStudents: number,
+  groupSize: number,
+  admin1: string,
+  admin2: string,
 }
 
 function CreateCourseModal() {
   const { CreateCourseModalContext } = useModalsProvider()
   const { open, setOpen } = CreateCourseModalContext
 
-  const [courseName, setCourseName] = useState<string>()
-  const [maxStudents, setMaxStudents] = useState<number>()
-  const [groupSize, setGroupSize] = useState<number>()
-  const [sessions, setSessions] = useState<Session[]>([])
+  const program = useProgram()
+  const wallet = useWallet()
 
-  const { control, handleSubmit } = useForm<{
-    sessions: Session[]
-  }>();
+  const { handleSubmit, register, reset } = useForm<CourseDataForm>({
+    defaultValues: {
+      name: "",
+      maxStudents: 60,
+      groupSize: 3,
+      admin1: wallet.publicKey?.toBase58() || "",
+      admin2: "",
+    }
+  });
 
-  const onSubmit = (data: { sessions: Session[] }) => {
-    console.log(data);
+  const onSubmit = async (data: CourseDataForm) => {
+
+    const admins = [
+      new PublicKey(data.admin1),
+    ]
+    if (data.admin2 !== "") {
+      admins.push(new PublicKey(data.admin2))
+    }
+
+    const courseData: CourseData = {
+      name: data.name,
+      maxStudents: new BN(data.maxStudents),
+      groupSize: new BN(data.groupSize),
+      admins: admins,
+    }
+
+    createCourseDataAccount(program, wallet, courseData);
+    reset();
+    setOpen(false);
   };
-
-  const handleAddSession = () => {
-    setSessions([...sessions, { date: null, duration: 60 }])
-  }
 
   return (
     <Dialog.Root open={open} onOpenChange={() => setOpen(false)}>
@@ -52,65 +77,58 @@ function CreateCourseModal() {
               <Input
                 type="text"
                 placeholder="Course Name"
-                value={courseName}
-                onChange={(e) => setCourseName(e.target.value)}
+                {...register('name', {
+                  required: true,
+                  minLength: 3,
+                  maxLength: 20,
+                })}
               />
               <Input
                 type="number"
                 placeholder="Max Students"
-                value={maxStudents}
-                onChange={(e) => setMaxStudents(parseInt(e.target.value))}
+                {...register('maxStudents', {
+                  required: true,
+                  min: 1,
+                  max: 100,
+                })}
               />
               <Input
                 type="number"
                 placeholder="Group Size"
-                value={groupSize}
-                onChange={(e) => setGroupSize(parseInt(e.target.value))}
+                {...register('groupSize', {
+                  required: true,
+                  min: 1,
+                  max: 100,
+                })}
               />
 
               <Text variant="heading" alignSelf="flex-start">
-                Sessions:
+                Course Admins:
               </Text>
-              {sessions.map((session, index) => (
-                <div
-                  key={index}
-                  className={hstack({
-                    gap: 2,
-                    alignItems: "flex-start",
-                    justifyContent: "flex-start",
-                  })}
-                >
-                  <Controller
-                    name={`sessions.${index}.date`}
-                    control={control}
-                    render={({ field }) => (
-                      <SingleDatePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Select date"
-                      />
-                    )}
-                  />
-                  <Input
-                    placeholder="Duration (minutes)"
-                    value={session.duration}
-                    onChange={(e) => {
-                      const updatedSessions = [...sessions];
-                      updatedSessions[index].duration =
-                        parseInt(e.target.value) || 0;
-                      setSessions(updatedSessions);
-                    }}
-                    type="number"
-                  />
-                </div>
-              ))}
-              <Button
-                variant="subtle"
-                alignSelf="flex-start"
-                onClick={handleAddSession}
-              >
-                Add Session
-              </Button>
+              <Input
+                type="text"
+                placeholder="Course Admin"
+                {...register('admin1', {
+                  required: true,
+                  validate: (value) => {
+                    return value === wallet.publicKey?.toBase58()
+                  }
+                })}
+              />
+              <Input
+                type="text"
+                placeholder="Course Admin"
+                {...register('admin2', {
+                  required: false,
+                  validate: (value) => {
+                    if (value === "") {
+                      return true
+                    }
+                    return value === wallet.publicKey?.toBase58()
+                  }
+                })}
+              />
+
             </div>
             <div
               className={hstack({ gap: 2, justifyContent: "flex-end", pt: 4 })}

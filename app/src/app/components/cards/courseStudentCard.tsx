@@ -10,7 +10,7 @@ type Props = {
   progress: number;
 };
 
-function CourseCard(props: Props) {
+function CourseStudentCard(props: Props) {
   return (
     <div
       className={gridItem({
@@ -106,4 +106,4 @@ function CourseCard(props: Props) {
   );
 }
 
-export default CourseCard;
+export default CourseStudentCard;

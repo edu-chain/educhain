@@ -15,10 +15,6 @@ export default function AdminCoursesList({schoolAddress}: {schoolAddress: Public
   const [courses, setCourses] = useState<Infos<CourseData>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  if (!program) {
-    return null;
-  }
-
   useEffect(() => {
     const fetchCourses = async () => {
       const courses = await getCoursesInfos(program, schoolAddress);

@@ -44,7 +44,7 @@ Voici un exemple de sortie attendue :
 
 Fournis la liste des utilisateurs pour que je puisse former les groupes.`
 
-export async function openaiGenerateGroups(prompt: string) {
+async function openaiGenerateGroups(prompt: string) {
 
   const completion = await openai.chat.completions.create({
     messages: [
@@ -74,7 +74,6 @@ export async function openaiGenerateGroups(prompt: string) {
 
   return completion.choices[0].message.content;
 }
-
 
 export async function POST(request: Request) {
 

@@ -302,7 +302,7 @@ export async function createSchoolDataAccount(
     .initializeSchool(
       name
     )
-    .accounts({
+    .accountsPartial({
       school: school,
       signer: wallet.publicKey,
       systemProgram: SystemProgram.programId,
@@ -341,7 +341,7 @@ export async function createCourseDataAccount(
   );
 
   const transaction = await program.methods.createCourse(courseData.name, adminPublicKeys)
-    .accounts({
+    .accountsPartial({
       school: school.publicKey,
       course: course,
       signer: wallet.publicKey,

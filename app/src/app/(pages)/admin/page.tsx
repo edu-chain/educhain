@@ -27,23 +27,25 @@ function SchoolCreate() {
   const { setOpen } = CreateSchoolModalContext;
 
   return (
-    <div className={vstack({
-      gap: "20",
-      alignItems: "center",
-      justifyContent: "center",
-      height: "100vh"
-  })}>
-      <h1 className={css({
-          fontSize: "4xl",
-          fontWeight: "bold",
-          color: "text"
-      })}>{'Ce compte n'a pas d'école associée'}</h1>
-      <Button onClick={() => setOpen(true)} size={"2xl"}>
-          Créer une école
-          <School/>
-      </Button>
-      <CreateSchoolModal />
-    </div>
+    <>
+      <div className={vstack({
+        gap: "20",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh"
+      })}>
+        <h1 className={css({
+            fontSize: "4xl",
+            fontWeight: "bold",
+            color: "text"
+        })}>{'Ce compte n'a pas d'école associée'}</h1>
+        <Button onClick={() => setOpen(true)} size={"2xl"}>
+            Créer une école
+            <School/>
+        </Button>
+        <CreateSchoolModal />
+      </div>
+    </>
   );
 }
 

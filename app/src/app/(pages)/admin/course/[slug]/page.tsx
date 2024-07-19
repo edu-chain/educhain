@@ -118,8 +118,9 @@ function CourseContent(course: Infos<CourseData>) {
   const program = useProgram();
 
   useEffect(() => {
-    getSessionsInfos(program, course.publicKey).then(setSessions);
-  }, [course.publicKey]);
+    getSessionsInfos(program, course.publicKey)
+      .then(setSessions);
+  }, [program, course.publicKey]);
 
   return (
     <div className={css({ p: 6 })}>
@@ -242,7 +243,7 @@ function CoursePage() {
       setCourse(course);
     }
     fetchCourse();
-  }, [slug]);
+  });
 
 
   return (

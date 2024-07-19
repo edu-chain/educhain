@@ -43,7 +43,7 @@ export default function useCourses(params: UseCoursesParams) {
       .finally(() => {
         setLoading(false);
       });
-  },[]);
+  });
 
   return { coursesList, loading, errorMessage };
 }

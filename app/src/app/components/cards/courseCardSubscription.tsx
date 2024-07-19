@@ -58,7 +58,7 @@ export default function CourseCardSubscription(
         setLoading(false);
       });
 
-  }, []);
+  });
 
   if (errorMessage) {
     return <div>{errorMessage}</div>;

@@ -7,9 +7,13 @@ export default function SchoolsList(
 ){
   return (
     <ul>
-      {schoolsList.map((school) => <li className={css({
-        fontSize: "2xl"
-      })}>{school.account.name}</li>)}
+      {schoolsList.map((school, index) => (
+        <li key={index} className={css({
+          fontSize: "2xl"
+        })}>
+          {school.account.name}
+        </li>
+      ))}
     </ul>
   );
 }

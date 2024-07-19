@@ -50,7 +50,7 @@ function CourseAdminModal() {
       setNextSessionId(course.account.sessionsCounter.toNumber() + 1);
     }
     fetchCourse();
-  }, [courseAddress]);
+  }, [courseAddress, program]);
 
 
   const createSessions = async (name: string) => {

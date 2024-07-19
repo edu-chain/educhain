@@ -54,7 +54,7 @@ export const ItemGroup = withContext<HTMLDivElement, Assign<JsxStyleProps, Menu.
 export const ItemIndicator = withContext<
   HTMLDivElement,
   Assign<JsxStyleProps, Menu.ItemIndicatorProps>
->(Menu.ItemIndicator, 'itemIndicator')
+>(Menu.ItemIndicator, 'indicator')
 
 export const Item = withContext<HTMLDivElement, Assign<JsxStyleProps, Menu.ItemProps>>(
   Menu.Item,
@@ -63,7 +63,7 @@ export const Item = withContext<HTMLDivElement, Assign<JsxStyleProps, Menu.ItemP
 
 export const ItemText = withContext<HTMLDivElement, Assign<JsxStyleProps, Menu.ItemTextProps>>(
   Menu.ItemText,
-  'itemText',
+  'item',
 )
 
 export const Positioner = withContext<HTMLDivElement, Assign<JsxStyleProps, Menu.PositionerProps>>(

@@ -38,7 +38,7 @@ export default function useSessions(params: UseSessionsParams) {
       .finally(() => {
         setLoading(false);
       });
-  },[]);
+  });
 
   return { sessionsList, loading, errorMessage };
 }

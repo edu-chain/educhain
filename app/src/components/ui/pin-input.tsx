@@ -4,7 +4,7 @@ import { forwardRef } from 'react'
 import { css, cx } from 'styled-system/css'
 import { splitCssProps } from 'styled-system/jsx'
 import { type PinInputVariantProps, pinInput } from 'styled-system/recipes'
-import type { JsxStyleProps } from 'styled-system/types'
+import type { JsxStyleProps, SystemStyleObject } from 'styled-system/types'
 import { Input } from '~/components/ui/input'
 
 export interface PinInputProps
@@ -25,7 +25,7 @@ export const PinInput = forwardRef<HTMLDivElement, PinInputProps>((props, ref) =
 
   return (
     <ArkPinInput.Root
-      className={cx(styles.root, css(cssProps), className)}
+      className={cx(styles.root, css(cssProps as SystemStyleObject), className)}
       ref={ref}
       {...rootProps}
     >

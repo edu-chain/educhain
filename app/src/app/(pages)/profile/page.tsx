@@ -2,6 +2,7 @@
 import React from 'react'
 import { css } from "styled-system/css";
 import { hstack, vstack } from "styled-system/patterns";
+import Image from 'next/image';
 
 function page() {
 
@@ -25,9 +26,12 @@ function page() {
     >
       <div className={vstack({ flexDir: "column" })}>
         {/* <!-- Cover Image --> */}
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0NzEyNjZ8MHwxfHNlYXJjaHw5fHxjb3ZlcnxlbnwwfDB8fHwxNzEwNzQxNzY0fDA&ixlib=rb-4.0.3&q=80&w=1080"
           alt="User Cover"
+          width={1080}
+          height={720}
+          priority={true}
           className={css({
             w: "full",
             xl: { h: "20rem" },
@@ -46,9 +50,12 @@ function page() {
             display: "flex",
           })}
         >
-          <img
+          <Image
             src={session.data?.user?.image || ""}
             alt="User Profile"
+            width={120}
+            height={120}
+            priority={true}
             className={css({
               rounded: "md",
               lg: { w: "12rem", h: "12rem", bottom: "5rem" },
@@ -283,7 +290,7 @@ function page() {
                   <path
                     fillRule="evenodd"
                     d="M12.51 8.796v1.697a3.738 3.738 0 0 1 3.288-1.684c3.455 0 4.202 2.16 4.202 4.97V19.5h-3.2v-5.072c0-1.21-.244-2.766-2.128-2.766-1.827 0-2.139 1.317-2.139 2.676V19.5h-3.19V8.796h3.168ZM7.2 6.106a1.61 1.61 0 0 1-.988 1.483 1.595 1.595 0 0 1-1.743-.348A1.607 1.607 0 0 1 5.6 4.5a1.601 1.601 0 0 1 1.6 1.606Z"
-                    clip-rule="evenodd"
+                    clipRule="evenodd"
                   />
                   <path d="M7.2 8.809H4V19.5h3.2V8.809Z" />
                 </svg>
@@ -326,7 +333,7 @@ function page() {
                   <path
                     fillRule="evenodd"
                     d="M13.135 6H15V3h-1.865a4.147 4.147 0 0 0-4.142 4.142V9H7v3h2v9.938h3V12h2.021l.592-3H12V6.591A.6.6 0 0 1 12.592 6h.543Z"
-                    clip-rule="evenodd"
+                    clipRule="evenodd"
                   />
                 </svg>
               </div>
@@ -349,7 +356,7 @@ function page() {
                   <path
                     fillRule="evenodd"
                     d="M21.7 8.037a4.26 4.26 0 0 0-.789-1.964 2.84 2.84 0 0 0-1.984-.839c-2.767-.2-6.926-.2-6.926-.2s-4.157 0-6.928.2a2.836 2.836 0 0 0-1.983.839 4.225 4.225 0 0 0-.79 1.965 30.146 30.146 0 0 0-.2 3.206v1.5a30.12 30.12 0 0 0 .2 3.206c.094.712.364 1.39.784 1.972.604.536 1.38.837 2.187.848 1.583.151 6.731.2 6.731.2s4.161 0 6.928-.2a2.844 2.844 0 0 0 1.985-.84 4.27 4.27 0 0 0 .787-1.965 30.12 30.12 0 0 0 .2-3.206v-1.516a30.672 30.672 0 0 0-.202-3.206Zm-11.692 6.554v-5.62l5.4 2.819-5.4 2.801Z"
-                    clip-rule="evenodd"
+                    clipRule="evenodd"
                   />
                 </svg>
               </div>

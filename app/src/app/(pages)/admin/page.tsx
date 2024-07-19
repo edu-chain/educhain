@@ -73,7 +73,7 @@ function SchoolData(
       setIsLoading(false);
     };
     mount();
-  }, []);
+  });
 
   return (
     <>
@@ -161,7 +161,7 @@ function SchoolPage() {
       setIsLoading(false);
     };
     fetchSchoolData();
-  },[wallet.publicKey]);
+  },[wallet.publicKey, program]);
   
 
   return (

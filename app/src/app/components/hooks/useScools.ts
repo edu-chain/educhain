@@ -20,7 +20,7 @@ export default function useSchools() {
     .finally(() => {
       setLoading(false);
     });
-  }, []);
+  });
 
   return { schoolsList, loading, errorMessage };
 }

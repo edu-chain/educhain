@@ -33,7 +33,7 @@ function SessionsList({coursePublicKey}: {coursePublicKey: PublicKey}) {
     .then(attendances => {
       setAttendances(attendances);
     });
-  }, []);
+  }, [program, coursePublicKey, wallet.publicKey]);
 
   const attendancePdaExist = (sessionPublicKey: PublicKey) => {
     return attendances.find(attendance => attendance.account?.session.toBase58() === sessionPublicKey.toBase58());

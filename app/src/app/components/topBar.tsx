@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic'
 import { NavBar } from './navBar'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { getBalance } from './solana/solana.helpers'
+import { PublicKey } from '@solana/web3.js'
 
 const WalletMultiButton = dynamic(
   () => import('@solana/wallet-adapter-react-ui')
@@ -22,7 +23,7 @@ function Navbar() {
   useEffect(() => {
     if (wallet.publicKey !== null) {
       const fetchBalance = async () => {
-        const balance = await getBalance(wallet.publicKey);
+        const balance = await getBalance(wallet.publicKey as PublicKey);
         setBalance(parseFloat(balance.toFixed(2)));
       };
       fetchBalance();

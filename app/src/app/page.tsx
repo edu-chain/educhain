@@ -20,7 +20,7 @@ export default function Home() {
       maxW="7xl"
     >
       <Button onClick={() => setOpen(true)}>Open Modal</Button>
-      <CreateCourseModal open={open} onClose={() => setOpen(false)} />
+      <CreateCourseModal />
     </Container>
   );
 }

@@ -2,10 +2,8 @@
 import React from 'react'
 import { css } from "styled-system/css";
 import { hstack, vstack } from "styled-system/patterns";
-import { useRouter } from "next/navigation";
 
 function page() {
-    const router = useRouter();
 
     const session = {
       data: {

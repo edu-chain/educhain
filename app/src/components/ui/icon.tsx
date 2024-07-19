@@ -4,7 +4,7 @@ import { forwardRef } from 'react'
 import { css, cx } from 'styled-system/css'
 import { splitCssProps } from 'styled-system/jsx'
 import { type IconVariantProps, icon } from 'styled-system/recipes'
-import type { JsxStyleProps } from 'styled-system/types'
+import type { JsxStyleProps, SystemStyleObject } from 'styled-system/types'
 
 export interface IconProps extends Assign<JsxStyleProps, HTMLArkProps<'svg'>>, IconVariantProps {}
 
@@ -15,6 +15,6 @@ export const Icon = forwardRef<SVGSVGElement, IconProps>((props, ref) => {
   const styles = icon(variantProps)
 
   return (
-    <ark.svg ref={ref} asChild className={cx(styles, css(cssProps), className)} {...otherProps} />
+    <ark.svg ref={ref} asChild className={cx(styles, css(cssProps as SystemStyleObject), className)} {...otherProps} />
   )
 })

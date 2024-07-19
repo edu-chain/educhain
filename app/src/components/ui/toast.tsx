@@ -14,7 +14,7 @@ export const Root = withProvider<HTMLDivElement, RootProps>(Toast.Root, 'root')
 export const ActionTrigger = withContext<
   HTMLButtonElement,
   Assign<JsxStyleProps, Toast.ActionTriggerProps>
->(Toast.ActionTrigger, 'actionTrigger')
+>(Toast.ActionTrigger, 'group')
 
 export const CloseTrigger = withContext<
   HTMLDivElement,

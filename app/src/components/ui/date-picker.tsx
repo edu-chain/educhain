@@ -53,11 +53,6 @@ export const Positioner = withContext<
   Assign<JsxStyleProps, DatePicker.MonthSelectProps>
 >(DatePicker.Positioner, 'positioner')
 
-export const PresetTrigger = withContext<
-  HTMLButtonElement,
-  Assign<JsxStyleProps, DatePicker.PresetTriggerProps>
->(DatePicker.PresetTrigger, 'presetTrigger')
-
 export const PrevTrigger = withContext<
   HTMLButtonElement,
   Assign<JsxStyleProps, DatePicker.PrevTriggerProps>

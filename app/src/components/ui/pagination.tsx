@@ -4,7 +4,7 @@ import { forwardRef } from 'react'
 import { css, cx } from 'styled-system/css'
 import { splitCssProps } from 'styled-system/jsx'
 import { type PaginationVariantProps, pagination } from 'styled-system/recipes'
-import type { JsxStyleProps } from 'styled-system/types'
+import type { JsxStyleProps, SystemStyleObject } from 'styled-system/types'
 import { Button } from '~/components/ui/button'
 import { IconButton } from '~/components/ui/icon-button'
 
@@ -20,7 +20,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>((props, ref) 
 
   return (
     <ArkPagination.Root
-      className={cx(styles.root, css(cssProps), className)}
+      className={cx(styles.root, css(cssProps as SystemStyleObject), className)}
       ref={ref}
       {...rootProps}
     >

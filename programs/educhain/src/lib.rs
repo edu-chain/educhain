@@ -15,7 +15,7 @@ pub mod instructions;   // import ./instructions/mod.rs (or ./instructions.rs)
 // "use" statements are in ./instructions/mod.rs
 use instructions::*;
 
-declare_id!("3WXZzDFmMAv6z69NQZNhV2YLMMWc7khQNRfyei2VCZmi");
+declare_id!("EQTpUfQNeenySvPPvwYw9rfyjC6gPNhnR7YikL8Y41m9");
 
 #[program]
 pub mod educhain {

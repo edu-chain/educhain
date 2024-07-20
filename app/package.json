@@ -1,0 +1,36 @@
+{
+  "name": "boiler_plate",
+  "private": true,
+  "scripts": {
+    "prepare": "panda codegen",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ark-ui/react": "^3.3.0",
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.95.0",
+    "lucide-react": "^0.396.0",
+    "next": "^14.2.4",
+    "openai": "^4.52.7",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-hook-form": "^7.52.1"
+  },
+  "devDependencies": {
+    "@pandacss/dev": "0.30.2",
+    "@park-ui/panda-preset": "0.34.1",
+    "@types/node": "20.11.17",
+    "@types/react": "18.2.67",
+    "@types/react-dom": "18.2.22",
+    "eslint": "8.56.0",
+    "eslint-config-next": "13.5.1",
+    "typescript": "5.4.2"
+  }
+}

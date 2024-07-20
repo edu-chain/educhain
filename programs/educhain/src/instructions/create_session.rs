@@ -5,6 +5,7 @@ use crate::state::session_data_account::SessionDataAccount;
 
 #[derive(Accounts)]
 pub struct CreateSession<'info> {
+    // ? : why school account is needed here?
     #[account(
         seeds = [
         b"school",

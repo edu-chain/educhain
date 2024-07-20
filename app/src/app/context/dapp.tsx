@@ -14,8 +14,6 @@ type DappContextType = {
 
 export const DappProviderContext= createContext<any>(null);
 
-
-
 export function DappProvider({children}:{children:React.ReactNode}) {
   const wallet = useWallet() as AnchorWallet;
   const connection = useConnection().connection;

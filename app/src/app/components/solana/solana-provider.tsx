@@ -15,7 +15,7 @@ import { useCluster } from '../cluster/cluster-data-access';
 import IDL from "api/idl/educhain.json";
 import { Educhain } from "api/types/educhain";
 import { Connection } from "@solana/web3.js";
-import { DappProvider } from '~/app/context/program';
+import { DappProvider } from '~/app/context/dapp';
 
 
 require('@solana/wallet-adapter-react-ui/styles.css');

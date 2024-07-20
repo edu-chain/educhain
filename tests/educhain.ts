@@ -452,9 +452,9 @@ describe("educhain", () => {
     let initial_balance_school1 = await program.provider.connection.getBalance(da_school1);
     let initial_balance_student1 = await program.provider.connection.getBalance(student1.publicKey);
 
-    sub_student1_course1 = await student_subscription(da_school1, da_course1, student1, "Bob", {A1:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
-    sub_student2_course1 = await student_subscription(da_school1, da_course1, student2, "Alice", {A2:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
-    sub_student7_course1 = await student_subscription(da_school1, da_course1, student7, "John", {A3:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student1_course1 = await student_subscription(da_school1, da_course1, student1, "Bob", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student2_course1 = await student_subscription(da_school1, da_course1, student2, "Alice", 2, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student7_course1 = await student_subscription(da_school1, da_course1, student7, "John", 3, ["Solana", "Anchor", "Rust"], "Blockchain");
 
     let new_balance_school1 = await program.provider.connection.getBalance(da_school1);
     expect(new_balance_school1 - initial_balance_school1).to.equal(9 * LAMPORTS_PER_SOL);
@@ -464,20 +464,20 @@ describe("educhain", () => {
   });
 
   it("student2, student7 also wants to join course2", async () => {
-    sub_student2_course2 = await student_subscription(da_school1, da_course2, student2, "Alice", {A4:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
-    sub_student7_course2 = await student_subscription(da_school1, da_course2, student7, "John", {A5:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student2_course2 = await student_subscription(da_school1, da_course2, student2, "Alice", 4, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student7_course2 = await student_subscription(da_school1, da_course2, student7, "John", 5, ["Solana", "Anchor", "Rust"], "Blockchain");
   });
 
   it("student3,4,5,6 on course2", async () => {
-    sub_student3_course2 = await student_subscription(da_school1, da_course2, student3, "Paul", {A1:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
-    sub_student4_course2 = await student_subscription(da_school1, da_course2, student4, "Jessie", {A2:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
-    sub_student5_course2 = await student_subscription(da_school1, da_course2, student5, "Jack", {A1:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
-    sub_student6_course2 = await student_subscription(da_school1, da_course2, student6, "Steve", {A1:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student3_course2 = await student_subscription(da_school1, da_course2, student3, "Paul", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student4_course2 = await student_subscription(da_school1, da_course2, student4, "Jessie", 2, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student5_course2 = await student_subscription(da_school1, da_course2, student5, "Jack", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student6_course2 = await student_subscription(da_school1, da_course2, student6, "Steve", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
   });
 
   it("student1 tries to subscribe again to course1 (should fail)", async () => {
     try {
-      await student_subscription(da_school1, da_course1, student1, "Bob", {A1:{}}, ["Solana", "Anchor", "Rust"], "Blockchain");
+      await student_subscription(da_school1, da_course1, student1, "Bob", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
       expect.fail("Should fail");
     } catch (err) {
       // TODO: no error code in this case ? Find a better way...

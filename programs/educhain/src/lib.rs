@@ -58,7 +58,7 @@ pub mod educhain {
         Ok(())
     }
 
-    pub fn student_subscription(ctx: Context<StudentSubscription>, name: String, availability: AvailabilityType, skills: Vec<String>, interests: String) -> Result<()> {
+    pub fn student_subscription(ctx: Context<StudentSubscription>, name: String, availability: u8, skills: Vec<String>, interests: String) -> Result<()> {
         require!(skills.len()<=MAX_SKILLS_PER_STUDENT, CustomErrors::ExceedingMaximumSkills);
 
         // Student must pay his subscription (3 SOL per course). So this instruction is "payable"
@@ -185,6 +185,3 @@ pub mod educhain {
         Ok(())
     }
 }
-
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, InitSpace)]
-pub enum AvailabilityType { A1, A2, A3, A4, A5 }

@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 use crate::MAX_SKILLS_PER_STUDENT;
-use crate::AvailabilityType;
 
 #[account]
 #[derive(InitSpace)]
@@ -18,7 +17,7 @@ pub struct StudentSubscriptionDataAccount {
 
     pub active: bool,
 
-    pub availability: AvailabilityType,
+    pub availability: u8,
 
     #[max_len(MAX_SKILLS_PER_STUDENT, 100)]
     pub skills: Vec<String>,

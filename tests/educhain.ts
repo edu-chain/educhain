@@ -1,9 +1,23 @@
 import * as anchor from "@coral-xyz/anchor";
-import { BN, Program } from "@coral-xyz/anchor";
-import { Educhain } from "../target/types/educhain";
-import { LAMPORTS_PER_SOL, Keypair, PublicKey, SystemProgram } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
+import { LAMPORTS_PER_SOL, Keypair, PublicKey } from "@solana/web3.js";
 import { expect } from 'chai';
 import bs58 from 'bs58';
+
+import {
+  create_wallet_with_sol, 
+  create_school, 
+  create_course, 
+  create_session, 
+  student_subscription, 
+  student_attendance, 
+  create_group, 
+  add_student_to_group, 
+  create_group_swap_request, 
+  accept_swap, 
+  withdraw_revenues, 
+  program 
+} from './tests_helpers';
 
 /*
 Test dataset:
@@ -40,269 +54,6 @@ wallet2
 */
 
 describe("educhain", () => {
-
-  async function create_wallet_with_sol() : Promise<Keypair> {
-    const wallet = new Keypair()
-    let tx = await program.provider.connection.requestAirdrop(wallet.publicKey, 1000 * LAMPORTS_PER_SOL);
-    await program.provider.connection.confirmTransaction(tx);
-    return wallet
-  }
- 
-  async function create_school(name: String, wallet: Keypair) : Promise<PublicKey> {
-    const [da_school] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("school"),
-        wallet.publicKey.toBuffer()
-      ], program.programId);
-
-    let tx = await program.methods.initializeSchool(name)
-      .accounts({ 
-        school: da_school,
-        signer: wallet.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet])
-      .rpc();
-    return da_school;
-  }
-
-  async function create_course(name: String, da_school: PublicKey, course_id:Number, course_admins: PublicKey[], wallet: Keypair) : Promise<PublicKey> {
-    const [da_course] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("course"),
-        da_school.toBuffer(),
-        new BN(course_id).toArrayLike(Buffer, "le", 8)
-      ], program.programId);
-
-    let tx = await program.methods.createCourse(name, course_admins)
-      .accounts({ 
-        school: da_school,
-        course: da_course,
-        signer: wallet.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet])
-      .rpc();
-    return da_course;
-  } 
-
-  async function create_session(da_school: PublicKey, course_id:Number, session_id:Number, wallet: Keypair) : Promise<PublicKey> {
-
-    const [da_course] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("course"),
-        da_school.toBuffer(),
-        new BN(course_id).toArrayLike(Buffer, "le", 8)
-      ], program.programId);
-
-    const [da_session] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("session"),
-        da_school.toBuffer(),
-        new BN(course_id).toArrayLike(Buffer, "le", 8), 
-        new BN(session_id).toArrayLike(Buffer, "le", 8),
-      ], program.programId);
-
-    let tx = await program.methods.createSession(new BN(1), new BN(2)) // TODO: set correct start/end 
-      .accounts({ 
-        school: da_school,
-        course: da_course,
-        session: da_session,
-        signer: wallet.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet])
-      .rpc();
-    return da_session;
-  } 
-
-  async function student_subscription(da_school: PublicKey, da_course: PublicKey, wallet: Keypair, name: String, availability: Number, skills: String, interests: String) : Promise<PublicKey> {
-    let balance1 = await program.provider.connection.getBalance(wallet.publicKey);
-
-    const [da_subscription] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("subscription"),
-        da_course.toBuffer(),
-        wallet.publicKey.toBuffer()
-      ], program.programId);
-
-    let tx = await program.methods.studentSubscription(name, availability, skills, interests)
-      .accounts({ 
-        school: da_school,
-        course: da_course,
-        subscription: da_subscription,
-        signer: wallet.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet])
-      .rpc();
-
-    let latestBlockhash = await program.provider.connection.getLatestBlockhash();
-    let ret = await program.provider.connection.confirmTransaction({
-      signature: tx,
-      blockhash: latestBlockhash.blockhash,
-      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
-    }, 'confirmed');
-
-
-    const txDetails = await program.provider.connection.getTransaction(tx, { commitment: 'confirmed' });
-
-    let balance2 = await program.provider.connection.getBalance(wallet.publicKey);
-    let delta = balance1 - balance2 - txDetails?.meta?.fee;  // TODO: fee does not include everything. delta should be equals to 3...
-    // console.log(delta);
-    // console.log(delta / LAMPORTS_PER_SOL);
-
-    return da_subscription;
-  };
-
-  async function student_attendance(da_course: PublicKey, da_subscription: PublicKey, da_session: PublicKey, wallet: Keypair) : Promise<PublicKey> {
-    const [da_attendance] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("attendance"),
-        da_session.toBuffer(),
-        wallet.publicKey.toBuffer()
-      ], program.programId);
-
-    let tx = await program.methods.studentAttendance()
-      .accounts({ 
-        course: da_course,
-        subscription: da_subscription,	// Important because we need to check if the subscription exists
-        session: da_session,
-        attendance: da_attendance,
-        signer: wallet.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet])
-      .rpc();
-    return da_attendance;
-  };
-
-  async function create_group(da_school: PublicKey, course_id: Number, group_id:Number, wallet: Keypair) : Promise<PublicKey> {
-    const [da_course] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("course"),
-        da_school.toBuffer(),
-        new BN(course_id).toArrayLike(Buffer, "le", 8)
-      ], program.programId);
-
-    const [da_group] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("group"),
-        da_school.toBuffer(),
-        new BN(course_id).toArrayLike(Buffer, "le", 8),
-        new BN(group_id).toArrayLike(Buffer, "le", 8),
-      ], program.programId);
-
-    let tx = await program.methods.createGroup()
-      .accounts({ 
-        course: da_course,
-        group: da_group,
-        signer: wallet.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet])
-      .rpc();
-    return da_group;
-  };
-
-  async function add_student_to_group(da_course: PublicKey, da_subscription: PublicKey, da_group: PubkicKey, wallet: Keypair) {
-    let tx = await program.methods.addStudentToGroup()
-      .accounts({ 
-        course: da_course,
-        subscription: da_subscription,
-        group: da_group,
-        signer: wallet.publicKey
-      })
-      .signers([wallet])
-      .rpc();
-  };
-
-  async function create_group_swap_request(da_course: PublicKey, da_subscription: PublicKey, da_requested_group: PublicKey, wallet: Keypair) : Promise<PublicKey> {
-    const [da_request] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("swap_request"),
-        da_course.toBuffer(),
-        da_subscription.toBuffer(),
-        wallet.publicKey.toBuffer()
-      ], program.programId);
-
-    let tx = await program.methods.groupSwapRequest()
-      .accounts({ 
-        course: da_course,
-        subscription: da_subscription,
-        requestedGroup: da_requested_group,
-        swapRequest: da_request,
-        signer: wallet.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet])
-      .rpc();
-    return da_request;
-  };
-
-  async function accept_swap(
-    da_school: PublicKey, 
-    da_course: PublicKey, 
-    course_id: Number,
-    da_requesting_student: PublicKey,
-    da_requesting_student_subscription: PublicKey,
-    requesting_student_group_id: Number,
-    da_swap_request: PublicKey, 
-    signer_wallet: Keypair,  // Signer is the student who accepts the swap
-    da_signer_subscription: PublicKey,
-    signer_group_id: Number
-  ) {
-    const [da_requesting_student_group] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("group"),
-        da_school.toBuffer(),
-        new BN(course_id).toArrayLike(Buffer, "le", 8),
-        new BN(requesting_student_group_id).toArrayLike(Buffer, "le", 8),
-      ], program.programId);
-
-    const [da_signer_group] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("group"),
-        da_school.toBuffer(),
-        new BN(course_id).toArrayLike(Buffer, "le", 8),
-        new BN(signer_group_id).toArrayLike(Buffer, "le", 8),
-      ], program.programId);
-
-    let tx = await program.methods.acceptGroupSwap()
-      .accounts({
-        course: da_course,
-
-        requestingStudent: da_requesting_student,
-        requestingStudentSubscription: da_requesting_student_subscription,
-        requestingStudentGroup: da_requesting_student_group,
-
-        swapRequest: da_swap_request,
-
-        signer: signer_wallet.publicKey,
-        signerSubscription: da_signer_subscription,
-        signerGroup: da_signer_group,
-
-        systemProgram: SystemProgram.programId
-      })
-      .signers([signer_wallet])
-      .rpc();
-  };
-
-  async function withdraw_revenues(da_school: PublicKey, wallet: Keypair) : Promise {
-    let tx = await program.methods.withdrawRevenues()
-      .accounts({ 
-        school: da_school,
-        signer: wallet.publicKey,
-        systemProgram: SystemProgram.programId
-      })
-      .signers([wallet])
-      .rpc();
-  }
-
-  // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
-
-  const program = anchor.workspace.Educhain as Program<Educhain>;
 
   // Wallets declarations
   let wallet1, wallet2: Keypair;	// owners of school1 and school2

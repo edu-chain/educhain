@@ -146,7 +146,7 @@ pub mod educhain {
 
         // 5. Groups are also stored in subscription. We need to update subscriptions data-accounts
         ctx.accounts.requesting_student_subscription.group = Some(ctx.accounts.signer_group.key());
-        ctx.accounts.signer_subscription.group = Some(ctx.accounts.requesting_student.key());
+        ctx.accounts.signer_subscription.group = Some(ctx.accounts.requesting_student_group.key());
         
         Ok(())
     }

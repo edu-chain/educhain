@@ -790,6 +790,7 @@ describe("educhain", () => {
       ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
 
       expect(ret.name==="Paul" || ret.name==="John" || ret.name==="Steve").to.be.true;
+      expect(ret.group.toString()).to.equal(da_group1.toString());
     }
   });
 
@@ -824,6 +825,7 @@ describe("educhain", () => {
       ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
 
       expect(ret.name==="Jack" || ret.name==="Jessie").to.be.true;
+      expect(ret.group.toString()).to.equal(da_group2.toString());
     }
   });
 

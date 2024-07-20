@@ -22,7 +22,7 @@ export default function AdminCoursesList({schoolAddress}: {schoolAddress: Public
       setIsLoading(false);
     };
     fetchCourses();
-  }, [program, schoolAddress]);
+  }, []);
 
   return (
     <>

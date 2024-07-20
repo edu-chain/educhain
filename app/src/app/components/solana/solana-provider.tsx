@@ -5,7 +5,6 @@ import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { WalletError } from '@solana/wallet-adapter-base';
 import {
   AnchorWallet,
-  useConnection,
   useWallet,
   ConnectionProvider,
   WalletProvider,
@@ -16,6 +15,7 @@ import { useCluster } from '../cluster/cluster-data-access';
 import IDL from "api/idl/educhain.json";
 import { Educhain } from "api/types/educhain";
 import { Connection } from "@solana/web3.js";
+import { DappProvider } from '~/app/context/program';
 
 
 require('@solana/wallet-adapter-react-ui/styles.css');
@@ -36,7 +36,9 @@ export function SolanaProvider({ children }: { children: ReactNode }) {
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={[]} onError={onError} autoConnect={true}>
+        <DappProvider>
           <WalletModalProvider>{children}</WalletModalProvider>
+        </DappProvider>
       </WalletProvider>
     </ConnectionProvider>
   );

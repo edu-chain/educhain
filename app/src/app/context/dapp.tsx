@@ -1,8 +1,7 @@
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
-import { AnchorWallet, ConnectionContextState, Wallet, WalletContextState, useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { AnchorWallet, Wallet, useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Connection } from "@solana/web3.js";
 import { createContext, useContext } from "react";
-import { useProgram } from "../components/solana/solana-provider";
 import { Educhain } from "@api/types/educhain";
 import IDL from "api/idl/educhain.json";
 

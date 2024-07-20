@@ -13,4 +13,10 @@ pub enum CustomErrors {
 
     #[msg("Student is member of another group")]
     StudentIsMemberOfAnotherGroup,
+
+    #[msg("Invalid student")]
+    InvalidStudent,
+
+    #[msg("Invalid group")]
+    InvalidGroup,
 }

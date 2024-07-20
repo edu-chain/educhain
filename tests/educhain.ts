@@ -29,7 +29,7 @@ wallet1
         student4 (Jessie)
       group2 (id=2)
         student5 (Jack)
-        student6 (Steve)
+        student6 (Steve) -> Wants to join group1. student4 will accept to swap.
       student2 (Alice)
 
 wallet2
@@ -237,16 +237,51 @@ describe("educhain", () => {
     return da_request;
   };
 
-  async function accept_swap(da_course: PublicKey, da_swap_request: PublicKey, signer_group: PublicKey, wallet: Keypair) {
+  async function accept_swap(
+    da_school: PublicKey, 
+    da_course: PublicKey, 
+    course_id: Number,
+    da_requesting_student: PublicKey,
+    da_requesting_student_subscription: PublicKey,
+    requesting_student_group_id: Number,
+    da_swap_request: PublicKey, 
+    signer_wallet: Keypair,  // Signer is the student who accepts the swap
+    da_signer_subscription: PublicKey,
+    signer_group_id: Number
+  ) {
+    const [da_requesting_student_group] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("group"),
+        da_school.toBuffer(),
+        new BN(course_id).toArrayLike(Buffer, "le", 8),
+        new BN(requesting_student_group_id).toArrayLike(Buffer, "le", 8),
+      ], program.programId);
+
+    const [da_signer_group] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("group"),
+        da_school.toBuffer(),
+        new BN(course_id).toArrayLike(Buffer, "le", 8),
+        new BN(signer_group_id).toArrayLike(Buffer, "le", 8),
+      ], program.programId);
+
     let tx = await program.methods.acceptGroupSwap()
       .accounts({
         course: da_course,
+
+        requestingStudent: da_requesting_student,
+        requestingStudentSubscription: da_requesting_student_subscription,
+        requestingStudentGroup: da_requesting_student_group,
+
         swapRequest: da_swap_request,
-        signer: wallet.publicKey,
-        signerGroup: signer_group,
+
+        signer: signer_wallet.publicKey,
+        signerSubscription: da_signer_subscription,
+        signerGroup: da_signer_group,
+
         systemProgram: SystemProgram.programId
       })
-      .signers([wallet])
+      .signers([signer_wallet])
       .rpc();
   };
 
@@ -274,7 +309,7 @@ describe("educhain", () => {
   let da_school1, da_school2: PublicKey;
   let da_course1, da_course2, da_course3: PublicKey;
   let da_session1, da_session2, da_session3, da_session4, da_session5: PublicKey;
-  let student1, student2, student3, student4, student5, student6, student7: PublicKey;
+  let student1, student2, student3, student4, student5, student6, student7: Keypair; // PublicKey;
   let sub_student1_course1, sub_student2_course1, sub_student7_course1, sub_student2_course2, sub_student7_course2, sub_student3_course2, sub_student4_course2, sub_student5_course2, sub_student6_course2: PublicKey;  
   let da_group1, da_group2, da_group3: PublicKey;
   let student6_swap_request: PublicKey;
@@ -704,13 +739,92 @@ describe("educhain", () => {
     let swap_requests = await program.account.groupSwapRequestDataAccount.all();
     expect(swap_requests.length).to.equal(2);
 
-    await accept_swap(da_course2, student6_swap_request, da_group1, student4);
+    await accept_swap(
+      da_school1,
+      da_course2, 
+      2,			// course id
+      student6.publicKey,	// requesting student
+      sub_student6_course2,	// requesting student subscription
+      2,			// requesting student's initial group id
+   
+      student6_swap_request, 
+
+      student4,			// signer wallet (student accepting swap from group 1)
+      sub_student4_course2,	// signer subscription
+      1				// signer's initial group id
+    );
 
     // Check: The request should have been deleted
     swap_requests = await program.account.groupSwapRequestDataAccount.all();
     expect(swap_requests.length).to.equal(1);
+  });
 
-    // TODO: Check new students/groups membership
+  it("Check group1 new members", async () => {
+    let ret = await program.account.groupDataAccount.all([
+      // group.course==da_course2 && group.id==1
+      {
+        memcmp: {
+          offset: 8+8, // offset to course field
+          bytes: da_course2
+        } 
+      },
+      {
+        memcmp: {
+          offset: 8, // offset to id field
+          bytes: bs58.encode((new BN(1)).toBuffer('le', 8))
+        } 
+      }
+    ]);
+    expect(ret.length).to.equal(1);
+    let students = ret[0].account.students;
+    expect(students.length).to.equal(3);
+
+    for (let student of students) {
+      const [da_subscription] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("subscription"),
+          da_course2.toBuffer(),
+          student.toBuffer()
+        ], program.programId);
+
+      ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
+
+      expect(ret.name==="Paul" || ret.name==="John" || ret.name==="Steve").to.be.true;
+    }
+  });
+
+  it("Check group2 new members", async () => {
+    let ret = await program.account.groupDataAccount.all([
+      // group.course==da_course2 && group.id==2
+      {
+        memcmp: {
+          offset: 8+8, // offset to course field
+          bytes: da_course2
+        } 
+      },
+      {
+        memcmp: {
+          offset: 8, // offset to id field
+          bytes: bs58.encode((new BN(2)).toBuffer('le', 8))
+        } 
+      }
+    ]);
+    expect(ret.length).to.equal(1);
+    let students = ret[0].account.students;
+    expect(students.length).to.equal(2);
+
+    for (let student of students) {
+      const [da_subscription] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("subscription"),
+          da_course2.toBuffer(),
+          student.toBuffer()
+        ], program.programId);
+
+      ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
+
+      expect(ret.name==="Jack" || ret.name==="Jessie").to.be.true;
+    }
   });
 
   it("wallet2 trying to withdraw school1 revenues (should fail)", async () => {

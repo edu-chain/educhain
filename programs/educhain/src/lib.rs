@@ -50,7 +50,7 @@ pub mod educhain {
         ctx.accounts.session.id = ctx.accounts.course.sessions_counter;
         ctx.accounts.session.course = ctx.accounts.course.key();
         ctx.accounts.session.start = start;
-        ctx.accounts.session.start = end;
+        ctx.accounts.session.end = end;
 
         Ok(())
     }
@@ -127,8 +127,27 @@ pub mod educhain {
         Ok(())
     }
 
-    pub fn accept_group_swap(_ctx: Context<AcceptGroupSwap>) -> Result<()> {
-        // TODO: Checks + swap
+    pub fn accept_group_swap(ctx: Context<AcceptGroupSwap>) -> Result<()> {
+        // TODO: Checks
+
+        // The signer is the student who accepts the swap request
+
+        // 1. Remove the signer from the destination group:
+        ctx.accounts.signer_group.students.retain(|&x| x != ctx.accounts.signer.key());
+
+        // 2. Remove the requesting student from his initial group:
+        ctx.accounts.requesting_student_group.students.retain(|&x| x != ctx.accounts.requesting_student.key());
+
+        // 3. Add the requesting student to the destination group:
+        ctx.accounts.signer_group.students.push(ctx.accounts.requesting_student.key());
+
+        // 4. Add the signer to the requesting student initial group:
+        ctx.accounts.requesting_student_group.students.push(ctx.accounts.signer.key());
+
+        // 5. Groups are also stored in subscription. We need to update subscriptions data-accounts
+        ctx.accounts.requesting_student_subscription.group = Some(ctx.accounts.signer_group.key());
+        ctx.accounts.signer_subscription.group = Some(ctx.accounts.requesting_student.key());
+        
         Ok(())
     }
 

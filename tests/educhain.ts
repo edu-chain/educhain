@@ -29,7 +29,7 @@ wallet1
         student4 (Jessie)
       group2 (id=2)
         student5 (Jack)
-        student6 (Steve)
+        student6 (Steve) -> Wants to join group1. student4 will accept to swap.
       student2 (Alice)
 
 wallet2
@@ -116,7 +116,7 @@ describe("educhain", () => {
     return da_session;
   } 
 
-  async function student_subscription(da_school: PublicKey, da_course: PublicKey, wallet: Keypair, name) : Promise<PublicKey> {
+  async function student_subscription(da_school: PublicKey, da_course: PublicKey, wallet: Keypair, name: String, availability: Number, skills: String, interests: String) : Promise<PublicKey> {
     let balance1 = await program.provider.connection.getBalance(wallet.publicKey);
 
     const [da_subscription] = PublicKey.findProgramAddressSync(
@@ -126,7 +126,7 @@ describe("educhain", () => {
         wallet.publicKey.toBuffer()
       ], program.programId);
 
-    let tx = await program.methods.studentSubscription(name)
+    let tx = await program.methods.studentSubscription(name, availability, skills, interests)
       .accounts({ 
         school: da_school,
         course: da_course,
@@ -237,16 +237,51 @@ describe("educhain", () => {
     return da_request;
   };
 
-  async function accept_swap(da_course: PublicKey, da_swap_request: PublicKey, signer_group: PublicKey, wallet: Keypair) {
+  async function accept_swap(
+    da_school: PublicKey, 
+    da_course: PublicKey, 
+    course_id: Number,
+    da_requesting_student: PublicKey,
+    da_requesting_student_subscription: PublicKey,
+    requesting_student_group_id: Number,
+    da_swap_request: PublicKey, 
+    signer_wallet: Keypair,  // Signer is the student who accepts the swap
+    da_signer_subscription: PublicKey,
+    signer_group_id: Number
+  ) {
+    const [da_requesting_student_group] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("group"),
+        da_school.toBuffer(),
+        new BN(course_id).toArrayLike(Buffer, "le", 8),
+        new BN(requesting_student_group_id).toArrayLike(Buffer, "le", 8),
+      ], program.programId);
+
+    const [da_signer_group] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("group"),
+        da_school.toBuffer(),
+        new BN(course_id).toArrayLike(Buffer, "le", 8),
+        new BN(signer_group_id).toArrayLike(Buffer, "le", 8),
+      ], program.programId);
+
     let tx = await program.methods.acceptGroupSwap()
       .accounts({
         course: da_course,
+
+        requestingStudent: da_requesting_student,
+        requestingStudentSubscription: da_requesting_student_subscription,
+        requestingStudentGroup: da_requesting_student_group,
+
         swapRequest: da_swap_request,
-        signer: wallet.publicKey,
-        signerGroup: signer_group,
+
+        signer: signer_wallet.publicKey,
+        signerSubscription: da_signer_subscription,
+        signerGroup: da_signer_group,
+
         systemProgram: SystemProgram.programId
       })
-      .signers([wallet])
+      .signers([signer_wallet])
       .rpc();
   };
 
@@ -274,10 +309,10 @@ describe("educhain", () => {
   let da_school1, da_school2: PublicKey;
   let da_course1, da_course2, da_course3: PublicKey;
   let da_session1, da_session2, da_session3, da_session4, da_session5: PublicKey;
-  let student1, student2, student3, student4, student5, student6, student7: PublicKey;
+  let student1, student2, student3, student4, student5, student6, student7: Keypair; // PublicKey;
   let sub_student1_course1, sub_student2_course1, sub_student7_course1, sub_student2_course2, sub_student7_course2, sub_student3_course2, sub_student4_course2, sub_student5_course2, sub_student6_course2: PublicKey;  
   let da_group1, da_group2, da_group3: PublicKey;
-  let student6_swap_request: PublicKey;
+  let student6_swap_request, student5_swap_request: PublicKey;
   
   it("Create 2 schools, each with its own wallet", async () => {
     wallet1 = await create_wallet_with_sol();
@@ -405,7 +440,7 @@ describe("educhain", () => {
 
   it("student1 trying to join course1 - setting wrong school (should fail)", async () => {
     try {
-      await student_subscription(da_school2, da_course1, student1, "Bob");
+      await student_subscription(da_school2, da_course1, student1, "Bob", 1, "Java, C#", "Fishing");
       expect.fail("Should fail");
     } catch (err) {
       expect(err).to.have.property("error");
@@ -417,9 +452,9 @@ describe("educhain", () => {
     let initial_balance_school1 = await program.provider.connection.getBalance(da_school1);
     let initial_balance_student1 = await program.provider.connection.getBalance(student1.publicKey);
 
-    sub_student1_course1 = await student_subscription(da_school1, da_course1, student1, "Bob");
-    sub_student2_course1 = await student_subscription(da_school1, da_course1, student2, "Alice");
-    sub_student7_course1 = await student_subscription(da_school1, da_course1, student7, "John");
+    sub_student1_course1 = await student_subscription(da_school1, da_course1, student1, "Bob", 4, "Solana, Anchor, Rust", "Blockchain");
+    sub_student2_course1 = await student_subscription(da_school1, da_course1, student2, "Alice", 4, "Solana, Anchor, Rust", "Blockchain");
+    sub_student7_course1 = await student_subscription(da_school1, da_course1, student7, "John", 4, "Solana, Anchor, Rust", "Blockchain");
 
     let new_balance_school1 = await program.provider.connection.getBalance(da_school1);
     expect(new_balance_school1 - initial_balance_school1).to.equal(9 * LAMPORTS_PER_SOL);
@@ -429,20 +464,20 @@ describe("educhain", () => {
   });
 
   it("student2, student7 also wants to join course2", async () => {
-    sub_student2_course2 = await student_subscription(da_school1, da_course2, student2, "Alice");
-    sub_student7_course2 = await student_subscription(da_school1, da_course2, student7, "John");
+    sub_student2_course2 = await student_subscription(da_school1, da_course2, student2, "Alice", 4, "Solana, Anchor, Rust", "Blockchain");
+    sub_student7_course2 = await student_subscription(da_school1, da_course2, student7, "John", 4, "Solana, Anchor, Rust", "Blockchain");
   });
 
   it("student3,4,5,6 on course2", async () => {
-    sub_student3_course2 = await student_subscription(da_school1, da_course2, student3, "Paul");
-    sub_student4_course2 = await student_subscription(da_school1, da_course2, student4, "Jessie");
-    sub_student5_course2 = await student_subscription(da_school1, da_course2, student5, "Jack");
-    sub_student6_course2 = await student_subscription(da_school1, da_course2, student6, "Steve");
+    sub_student3_course2 = await student_subscription(da_school1, da_course2, student3, "Paul", 4, "Solana, Anchor, Rust", "Blockchain");
+    sub_student4_course2 = await student_subscription(da_school1, da_course2, student4, "Jessie", 4, "Solana, Anchor, Rust", "Blockchain");
+    sub_student5_course2 = await student_subscription(da_school1, da_course2, student5, "Jack", 4, "Solana, Anchor, Rust", "Blockchain");
+    sub_student6_course2 = await student_subscription(da_school1, da_course2, student6, "Steve", 4, "Solana, Anchor, Rust", "Blockchain");
   });
 
   it("student1 tries to subscribe again to course1 (should fail)", async () => {
     try {
-      await student_subscription(da_school1, da_course1, student1, "Bob");
+      await student_subscription(da_school1, da_course1, student1, "Bob", 4, "Solana, Anchor, Rust", "Blockchain");
       expect.fail("Should fail");
     } catch (err) {
       // TODO: no error code in this case ? Find a better way...
@@ -697,20 +732,172 @@ describe("educhain", () => {
   });
 
   it("student5 also asks to join group1", async () => {
-    await create_group_swap_request(da_course2, sub_student5_course2, da_group1, student5);
+    student5_swap_request = await create_group_swap_request(da_course2, sub_student5_course2, da_group1, student5);
+  });
+
+  it("swap acceptation - wrong arguments (should fail)", async () => {
+    try
+    { 
+      // wrong school
+      await accept_swap(
+        da_school2,
+        da_course2,
+        2,                        // course id
+        student6.publicKey,       // requesting student
+        sub_student6_course2,     // requesting student subscription
+        2,                        // requesting student's initial group id
+   
+        student6_swap_request,
+
+        student4,                 // signer wallet (student accepting swap from group 1)
+        sub_student4_course2,     // signer subscription
+        1                         // signer's initial group id
+      );
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("AccountNotInitialized");
+    }
+
+    try
+    { 
+      // wrong student swap request
+      await accept_swap(
+        da_school1,
+        da_course2,
+        2,                        // course id
+        student6.publicKey,       // requesting student
+        sub_student6_course2,     // requesting student subscription
+        2,                        // requesting student's initial group id
+   
+        student5_swap_request,
+
+        student4,                 // signer wallet (student accepting swap from group 1)
+        sub_student4_course2,     // signer subscription
+        1                         // signer's initial group id
+      );
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("InvalidStudentConstraint");
+    }
+
+    try
+    { 
+      // wrong group
+      await accept_swap(
+        da_school1,
+        da_course2,
+        2,                        // course id
+        student6.publicKey,       // requesting student
+        sub_student6_course2,     // requesting student subscription
+        1,                        // requesting student's initial group id
+   
+        student6_swap_request,
+
+        student4,                 // signer wallet (student accepting swap from group 1)
+        sub_student4_course2,     // signer subscription
+        1                         // signer's initial group id
+      );
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("InvalidGroupConstraint");
+    }
   });
 
   it("student4 accepts to swap with student6", async () => {
     let swap_requests = await program.account.groupSwapRequestDataAccount.all();
     expect(swap_requests.length).to.equal(2);
 
-    await accept_swap(da_course2, student6_swap_request, da_group1, student4);
+    await accept_swap(
+      da_school1,
+      da_course2, 
+      2,			// course id
+      student6.publicKey,	// requesting student
+      sub_student6_course2,	// requesting student subscription
+      2,			// requesting student's initial group id
+   
+      student6_swap_request, 
+
+      student4,			// signer wallet (student accepting swap from group 1)
+      sub_student4_course2,	// signer subscription
+      1				// signer's initial group id
+    );
 
     // Check: The request should have been deleted
     swap_requests = await program.account.groupSwapRequestDataAccount.all();
     expect(swap_requests.length).to.equal(1);
+  });
 
-    // TODO: Check new students/groups membership
+  it("Check group1 new members", async () => {
+    let ret = await program.account.groupDataAccount.all([
+      // group.course==da_course2 && group.id==1
+      {
+        memcmp: {
+          offset: 8+8, // offset to course field
+          bytes: da_course2
+        } 
+      },
+      {
+        memcmp: {
+          offset: 8, // offset to id field
+          bytes: bs58.encode((new BN(1)).toBuffer('le', 8))
+        } 
+      }
+    ]);
+    expect(ret.length).to.equal(1);
+    let students = ret[0].account.students;
+    expect(students.length).to.equal(3);
+
+    for (let student of students) {
+      const [da_subscription] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("subscription"),
+          da_course2.toBuffer(),
+          student.toBuffer()
+        ], program.programId);
+
+      ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
+
+      expect(ret.name==="Paul" || ret.name==="John" || ret.name==="Steve").to.be.true;
+      expect(ret.group.toString()).to.equal(da_group1.toString());
+    }
+  });
+
+  it("Check group2 new members", async () => {
+    let ret = await program.account.groupDataAccount.all([
+      // group.course==da_course2 && group.id==2
+      {
+        memcmp: {
+          offset: 8+8, // offset to course field
+          bytes: da_course2
+        } 
+      },
+      {
+        memcmp: {
+          offset: 8, // offset to id field
+          bytes: bs58.encode((new BN(2)).toBuffer('le', 8))
+        } 
+      }
+    ]);
+    expect(ret.length).to.equal(1);
+    let students = ret[0].account.students;
+    expect(students.length).to.equal(2);
+
+    for (let student of students) {
+      const [da_subscription] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("subscription"),
+          da_course2.toBuffer(),
+          student.toBuffer()
+        ], program.programId);
+
+      ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
+
+      expect(ret.name==="Jack" || ret.name==="Jessie").to.be.true;
+      expect(ret.group.toString()).to.equal(da_group2.toString());
+    }
   });
 
   it("wallet2 trying to withdraw school1 revenues (should fail)", async () => {

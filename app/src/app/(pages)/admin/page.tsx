@@ -58,22 +58,18 @@ function SchoolData(
   const program = useProgram();
   const wallet = useWallet();
 
-  const fetchBalance = async () => {
-    const balance = await getBalance(schoolAddress);
-    setBalance(Number(balance.toFixed(2)));
-  };
-
   const handleWithdrawal = async () => {
     await withdrawal(program, wallet, schoolAddress);
   };
 
   useEffect(() => {
-    const mount = async () => {
-      await fetchBalance();
+    const fetchBalance = async () => {
+      const balance = await getBalance(schoolAddress);
+      setBalance(Number(balance.toFixed(2)));
       setIsLoading(false);
     };
-    mount();
-  });
+    fetchBalance();
+  }, []);
 
   return (
     <>
@@ -161,7 +157,7 @@ function SchoolPage() {
       setIsLoading(false);
     };
     fetchSchoolData();
-  },[wallet.publicKey, program]);
+  },[]);
   
 
   return (

@@ -137,10 +137,13 @@ describe("educhain", () => {
       .signers([wallet])
       .rpc();
 
-    while (true) {
-      let ret = await program.provider.connection.confirmTransaction(tx);
-      if (ret.value.confirmationStatus=='confirmed') break;
-    }
+    let latestBlockhash = await program.provider.connection.getLatestBlockhash();
+    let ret = await program.provider.connection.confirmTransaction({
+      signature: tx,
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+    }, 'confirmed');
+
 
     const txDetails = await program.provider.connection.getTransaction(tx, { commitment: 'confirmed' });
 

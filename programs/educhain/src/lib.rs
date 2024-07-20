@@ -1,6 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
 use anchor_lang::system_program;
+use std::vec::Vec;
+use anchor_lang::AnchorSerialize;
+use anchor_lang::AnchorDeserialize;
 
 mod state;	// import ./state/mod.rs (or ./state.rs)
 // use state::group_swap_request_data_account::GroupSwapRequestDataAccount; 	// using ./state/group_swap_request_data_account.rs:GroupSwapRequestDataAccount
@@ -55,7 +58,8 @@ pub mod educhain {
         Ok(())
     }
 
-    pub fn student_subscription(ctx: Context<StudentSubscription>, name: String, availability: u8, skills: String, interests: String) -> Result<()> {
+    pub fn student_subscription(ctx: Context<StudentSubscription>, name: String, availability: u8, skills: Vec<String>, interests: String) -> Result<()> {
+        require!(skills.len()<=MAX_SKILLS_PER_STUDENT, CustomErrors::ExceedingMaximumSkills);
 
         // Student must pay his subscription (3 SOL per course). So this instruction is "payable"
         system_program::transfer(

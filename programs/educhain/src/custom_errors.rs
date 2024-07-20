@@ -8,6 +8,9 @@ pub enum CustomErrors {
     #[msg("Exceeding maximum group members count")]
     ExceedingMaximumGroupMembers,
 
+    #[msg("Exceeding maximum skills count")]
+    ExceedingMaximumSkills,
+
     #[msg("Only a course admin can create a group")]
     OnlyCourseAdminCanCreateGroup,
 

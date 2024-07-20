@@ -194,7 +194,7 @@ describe("educhain", () => {
 
   it("student1 trying to join course1 - setting wrong school (should fail)", async () => {
     try {
-      await student_subscription(da_school2, da_course1, student1, "Bob", 1, "Java, C#", "Fishing");
+      await student_subscription(da_school2, da_course1, student1, "Bob", 1, ["Java", "C#"], "Fishing");
       expect.fail("Should fail");
     } catch (err) {
       expect(err).to.have.property("error");
@@ -206,9 +206,9 @@ describe("educhain", () => {
     let initial_balance_school1 = await program.provider.connection.getBalance(da_school1);
     let initial_balance_student1 = await program.provider.connection.getBalance(student1.publicKey);
 
-    sub_student1_course1 = await student_subscription(da_school1, da_course1, student1, "Bob", 4, "Solana, Anchor, Rust", "Blockchain");
-    sub_student2_course1 = await student_subscription(da_school1, da_course1, student2, "Alice", 4, "Solana, Anchor, Rust", "Blockchain");
-    sub_student7_course1 = await student_subscription(da_school1, da_course1, student7, "John", 4, "Solana, Anchor, Rust", "Blockchain");
+    sub_student1_course1 = await student_subscription(da_school1, da_course1, student1, "Bob", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student2_course1 = await student_subscription(da_school1, da_course1, student2, "Alice", 2, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student7_course1 = await student_subscription(da_school1, da_course1, student7, "John", 3, ["Solana", "Anchor", "Rust"], "Blockchain");
 
     let new_balance_school1 = await program.provider.connection.getBalance(da_school1);
     expect(new_balance_school1 - initial_balance_school1).to.equal(9 * LAMPORTS_PER_SOL);
@@ -218,20 +218,20 @@ describe("educhain", () => {
   });
 
   it("student2, student7 also wants to join course2", async () => {
-    sub_student2_course2 = await student_subscription(da_school1, da_course2, student2, "Alice", 4, "Solana, Anchor, Rust", "Blockchain");
-    sub_student7_course2 = await student_subscription(da_school1, da_course2, student7, "John", 4, "Solana, Anchor, Rust", "Blockchain");
+    sub_student2_course2 = await student_subscription(da_school1, da_course2, student2, "Alice", 4, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student7_course2 = await student_subscription(da_school1, da_course2, student7, "John", 5, ["Solana", "Anchor", "Rust"], "Blockchain");
   });
 
   it("student3,4,5,6 on course2", async () => {
-    sub_student3_course2 = await student_subscription(da_school1, da_course2, student3, "Paul", 4, "Solana, Anchor, Rust", "Blockchain");
-    sub_student4_course2 = await student_subscription(da_school1, da_course2, student4, "Jessie", 4, "Solana, Anchor, Rust", "Blockchain");
-    sub_student5_course2 = await student_subscription(da_school1, da_course2, student5, "Jack", 4, "Solana, Anchor, Rust", "Blockchain");
-    sub_student6_course2 = await student_subscription(da_school1, da_course2, student6, "Steve", 4, "Solana, Anchor, Rust", "Blockchain");
+    sub_student3_course2 = await student_subscription(da_school1, da_course2, student3, "Paul", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student4_course2 = await student_subscription(da_school1, da_course2, student4, "Jessie", 2, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student5_course2 = await student_subscription(da_school1, da_course2, student5, "Jack", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
+    sub_student6_course2 = await student_subscription(da_school1, da_course2, student6, "Steve", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
   });
 
   it("student1 tries to subscribe again to course1 (should fail)", async () => {
     try {
-      await student_subscription(da_school1, da_course1, student1, "Bob", 4, "Solana, Anchor, Rust", "Blockchain");
+      await student_subscription(da_school1, da_course1, student1, "Bob", 1, ["Solana", "Anchor", "Rust"], "Blockchain");
       expect.fail("Should fail");
     } catch (err) {
       // TODO: no error code in this case ? Find a better way...
@@ -263,19 +263,19 @@ describe("educhain", () => {
     expect(course2_of_school1.account.sessionsCounter.eq(new anchor.BN(4))).to.be.true;
 
     // Check students of this course
-    ret = await program.account.studentSubscriptionDataAccount.all([
+    const subscriptions = await program.account.studentSubscriptionDataAccount.all([
       // subscription.course==course2_of_school1
       {
         memcmp: {
           offset: 8, // offset to course field
-          bytes: course2_of_school1.publicKey
+          bytes: course2_of_school1.publicKey.toBase58()
         } 
       }
     ]);
-    expect(ret.length).to.equal(6);
-    expect(ret.some(obj => obj.account.name === "Bob")).to.be.false;
-    expect(ret.some(obj => obj.account.name === "Alice")).to.be.true;
-    expect(ret.some(obj => obj.account.name === "Paul")).to.be.true;
+    expect(subscriptions.length).to.equal(6);
+    expect(subscriptions.some(obj => obj.account.name === "Bob")).to.be.false;
+    expect(subscriptions.some(obj => obj.account.name === "Alice")).to.be.true;
+    expect(subscriptions.some(obj => obj.account.name === "Paul")).to.be.true;
   });
 
   /*
@@ -450,8 +450,8 @@ describe("educhain", () => {
           student.toBuffer()
         ], program.programId);
 
-      ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
-      expect(ret.name==="Paul" || ret.name==="John" || ret.name==="Jessie").to.be.true;
+      const subscription = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
+      expect(subscription.name==="Paul" || subscription.name==="John" || subscription.name==="Jessie").to.be.true;
     }
   });
 
@@ -612,10 +612,10 @@ describe("educhain", () => {
           student.toBuffer()
         ], program.programId);
 
-      ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
+      const subscription = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
 
-      expect(ret.name==="Paul" || ret.name==="John" || ret.name==="Steve").to.be.true;
-      expect(ret.group.toString()).to.equal(da_group1.toString());
+      expect(subscription.name==="Paul" || subscription.name==="John" || subscription.name==="Steve").to.be.true;
+      expect(subscription.group.toString()).to.equal(da_group1.toString());
     }
   });
 
@@ -647,10 +647,10 @@ describe("educhain", () => {
           student.toBuffer()
         ], program.programId);
 
-      ret = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
+      const subscription = await program.account.studentSubscriptionDataAccount.fetch(da_subscription);
 
-      expect(ret.name==="Jack" || ret.name==="Jessie").to.be.true;
-      expect(ret.group.toString()).to.equal(da_group2.toString());
+      expect(subscription.name==="Jack" || subscription.name==="Jessie").to.be.true;
+      expect(subscription.group.toString()).to.equal(da_group2.toString());
     }
   });
 

@@ -110,7 +110,7 @@ async function student_subscription(
   wallet: Keypair, 
   name: string, 
   availability: number, 
-  skills: string, 
+  skills: string[], 
   interests: string
 ) : Promise<PublicKey> {
   let balance1 = await program.provider.connection.getBalance(wallet.publicKey);

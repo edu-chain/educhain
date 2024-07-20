@@ -13,7 +13,14 @@ pub struct StudentSubscriptionDataAccount {
 
     #[max_len(32)]
     pub name: String,		// Student can give different informations on his multiple subscriptions
-    // TODO: Interest centers, email, discord, ...
 
-    pub active: bool
+    pub active: bool,
+
+    pub availability: u8,
+
+    #[max_len(32)]
+    pub skills: String,
+
+    #[max_len(32)]
+    pub interests: String,
 }

@@ -55,7 +55,7 @@ pub mod educhain {
         Ok(())
     }
 
-    pub fn student_subscription(ctx: Context<StudentSubscription>, name: String) -> Result<()> {
+    pub fn student_subscription(ctx: Context<StudentSubscription>, name: String, availability: u8, skills: String, interests: String) -> Result<()> {
 
         // Student must pay his subscription (3 SOL per course). So this instruction is "payable"
         system_program::transfer(
@@ -75,6 +75,9 @@ pub mod educhain {
         ctx.accounts.subscription.student = ctx.accounts.signer.key();
         ctx.accounts.subscription.group = None;
         ctx.accounts.subscription.name = name;
+        ctx.accounts.subscription.availability = availability;
+        ctx.accounts.subscription.skills = skills;
+        ctx.accounts.subscription.interests = interests;
         ctx.accounts.subscription.active = false; // student is inactive by default.
 
         Ok(())

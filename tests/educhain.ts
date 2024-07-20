@@ -312,7 +312,7 @@ describe("educhain", () => {
   let student1, student2, student3, student4, student5, student6, student7: Keypair; // PublicKey;
   let sub_student1_course1, sub_student2_course1, sub_student7_course1, sub_student2_course2, sub_student7_course2, sub_student3_course2, sub_student4_course2, sub_student5_course2, sub_student6_course2: PublicKey;  
   let da_group1, da_group2, da_group3: PublicKey;
-  let student6_swap_request: PublicKey;
+  let student6_swap_request, student5_swap_request: PublicKey;
   
   it("Create 2 schools, each with its own wallet", async () => {
     wallet1 = await create_wallet_with_sol();
@@ -732,7 +732,78 @@ describe("educhain", () => {
   });
 
   it("student5 also asks to join group1", async () => {
-    await create_group_swap_request(da_course2, sub_student5_course2, da_group1, student5);
+    student5_swap_request = await create_group_swap_request(da_course2, sub_student5_course2, da_group1, student5);
+  });
+
+  it("swap acceptation - wrong arguments (should fail)", async () => {
+    try
+    { 
+      // wrong school
+      await accept_swap(
+        da_school2,
+        da_course2,
+        2,                        // course id
+        student6.publicKey,       // requesting student
+        sub_student6_course2,     // requesting student subscription
+        2,                        // requesting student's initial group id
+   
+        student6_swap_request,
+
+        student4,                 // signer wallet (student accepting swap from group 1)
+        sub_student4_course2,     // signer subscription
+        1                         // signer's initial group id
+      );
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("AccountNotInitialized");
+    }
+
+    try
+    { 
+      // wrong student swap request
+      await accept_swap(
+        da_school1,
+        da_course2,
+        2,                        // course id
+        student6.publicKey,       // requesting student
+        sub_student6_course2,     // requesting student subscription
+        2,                        // requesting student's initial group id
+   
+        student5_swap_request,
+
+        student4,                 // signer wallet (student accepting swap from group 1)
+        sub_student4_course2,     // signer subscription
+        1                         // signer's initial group id
+      );
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("InvalidStudentConstraint");
+    }
+
+    try
+    { 
+      // wrong group
+      await accept_swap(
+        da_school1,
+        da_course2,
+        2,                        // course id
+        student6.publicKey,       // requesting student
+        sub_student6_course2,     // requesting student subscription
+        1,                        // requesting student's initial group id
+   
+        student6_swap_request,
+
+        student4,                 // signer wallet (student accepting swap from group 1)
+        sub_student4_course2,     // signer subscription
+        1                         // signer's initial group id
+      );
+      expect.fail("Should fail");
+    } catch (err) {
+      expect(err).to.have.property("error");
+      expect(err.error.errorCode.code).to.equal("InvalidGroupConstraint");
+    }
   });
 
   it("student4 accepts to swap with student6", async () => {

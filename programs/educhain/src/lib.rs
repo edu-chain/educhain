@@ -128,8 +128,6 @@ pub mod educhain {
     }
 
     pub fn accept_group_swap(ctx: Context<AcceptGroupSwap>) -> Result<()> {
-        // TODO: Checks
-
         // The signer is the student who accepts the swap request
 
         // 1. Remove the signer from the destination group:

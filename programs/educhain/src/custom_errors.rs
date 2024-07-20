@@ -15,8 +15,11 @@ pub enum CustomErrors {
     StudentIsMemberOfAnotherGroup,
 
     #[msg("Invalid student")]
-    InvalidStudent,
+    InvalidStudentConstraint,
 
     #[msg("Invalid group")]
-    InvalidGroup,
+    InvalidGroupConstraint,
+
+    #[msg("Invalid course")]
+    InvalidCourseConstraint,
 }

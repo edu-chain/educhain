@@ -13,11 +13,15 @@ pub struct AcceptGroupSwap<'info> {
         course.school.as_ref(),
         &course.id.to_le_bytes()
         ],
-        bump
+        bump,
+        constraint = signer_subscription.course == course.key() @ CustomErrors::InvalidCourseConstraint
     )]
     pub course: Account<'info, CourseDataAccount>,
 
-    #[account(mut)]
+    #[account(
+      mut,
+      constraint = swap_request.student == requesting_student.key() @ CustomErrors::InvalidStudentConstraint
+    )]
     pub requesting_student: SystemAccount<'info>,
 
     #[account(
@@ -28,7 +32,6 @@ pub struct AcceptGroupSwap<'info> {
         swap_request.student.as_ref(),
         ],
         bump,
-//        constraint = requesting_student_subscription.student == requesting_student.key() @ CustomErrors::InvalidStudent
     )]
     pub requesting_student_subscription: Account<'info, StudentSubscriptionDataAccount>,
 
@@ -41,6 +44,7 @@ pub struct AcceptGroupSwap<'info> {
         &requesting_student_group.id.to_le_bytes()
         ],
         bump,
+        constraint = requesting_student_subscription.group.unwrap() == requesting_student_group.key() @ CustomErrors::InvalidGroupConstraint
     )]
     pub requesting_student_group: Account<'info, GroupDataAccount>,
 
@@ -55,7 +59,7 @@ pub struct AcceptGroupSwap<'info> {
         swap_request.student.as_ref()
         ],
         bump,
-        // constraint = swap_request.student == requesting_student.key() @ CustomErrors::InvalidStudent
+        constraint = swap_request.requested_group == signer_group.key() @ CustomErrors::InvalidGroupConstraint
     )]
     pub swap_request: Account<'info, GroupSwapRequestDataAccount>,
    
@@ -83,11 +87,9 @@ pub struct AcceptGroupSwap<'info> {
         &signer_group.id.to_le_bytes()
         ],
         bump,
-        // constraint = swap_request.requested_group == signer_group.key() @ CustomErrors::InvalidGroup
+        constraint = signer_subscription.group.unwrap() == signer_group.key() @ CustomErrors::InvalidGroupConstraint
     )]
     pub signer_group: Account<'info, GroupDataAccount>,
-
-    // TODO: Constraint: signer_group should be the same than swap_request.requested_group
 
     pub system_program: Program<'info, System>
 }

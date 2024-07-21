@@ -1,17 +1,16 @@
-import { createSchoolDataAccount, getCourseInfos } from "@api/educhain";
 import { css } from "styled-system/css";
 import { hstack, vstack } from "styled-system/patterns";
 import { useModalsProvider } from "~/app/context/modals"
 import { Button } from "~/components/ui/button";
 import * as Dialog from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input";
-import { useProgram } from "../solana/solana-provider";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
 import { Text } from "~/components/ui/text";
-import { SingleDatePicker } from "../UI/datePicker";
 import { useForm } from "react-hook-form";
+import { useProgramProvider } from "~/app/context/blockchain";
+import { BN } from "@coral-xyz/anchor";
+import { SessionData } from "~/app/types/educhain";
 
 type SessionForm = {
   startDate: Date;
@@ -19,47 +18,55 @@ type SessionForm = {
 }
 
 function CourseAdminModal() {
-
   const { CourseAdminModalContext } = useModalsProvider();
   const { open, setOpen, courseAddress } = CourseAdminModalContext;
   const [nextSessionId, setNextSessionId] = useState<number | null>(null);
   
-  const {handleSubmit, register, reset} = useForm<SessionForm>(
-    {
-      defaultValues: {
-        startDate: new Date(),
-        duration: 2,
-      }
+  const { handleSubmit, register, reset } = useForm<SessionForm>({
+    defaultValues: {
+      startDate: new Date(),
+      duration: 2,
     }
-  );
+  });
 
-  const program = useProgram();
-  const wallet = useWallet();
-
-
-
+  const { CourseContext, SessionContext, GeneralContext } = useProgramProvider();
 
   useEffect(() => {
     if (!courseAddress) return;
     const fetchCourse = async () => {
-      const course = await getCourseInfos(
-        program,
-        new PublicKey(courseAddress)
-      );
+      const course = CourseContext.courses?.find(c => c.publicKey.toString() === courseAddress);
       if (!course || !course.account.sessionsCounter) return;
       setNextSessionId(course.account.sessionsCounter.toNumber() + 1);
     }
     fetchCourse();
-  }, [courseAddress, program]);
+  }, [courseAddress, CourseContext.courses]);
 
+  const onSubmit = async (data: SessionForm) => {
+    if (!courseAddress || !GeneralContext.selectedItems.school) return;
 
-  const createSessions = async (name: string) => {
-    // await createSchoolDataAccount(program, wallet, name);
-    // setOpen(false);
-  }
+    const endDate = new Date(data.startDate);
+    endDate.setHours(endDate.getHours() + data.duration);
 
-  const onSubmit = async (data: any) => {
-    console.log(data);
+    const sessionData: SessionData = {
+      course: new PublicKey(courseAddress),
+      start: new BN(Math.floor(data.startDate.getTime() / 1000)),
+      end: new BN(Math.floor(endDate.getTime() / 1000)),
+      id: new BN(nextSessionId || 0), // Assuming nextSessionId is available
+      // attendancesCounter: new BN(0),
+    };
+
+    try {
+      SessionContext.createSession({
+        sessionData,
+        courseAddress: new PublicKey(courseAddress),
+        schoolAddress: GeneralContext.selectedItems.school,
+      });
+      setOpen(false);
+      reset();
+    } catch (error) {
+      console.error("Failed to create session:", error);
+      // Handle error (e.g., show error message to user)
+    }
   };
 
   return (
@@ -69,25 +76,31 @@ function CourseAdminModal() {
         <Dialog.Content
           className={css({ maxWidth: "500px", width: "90vw", p: 4 })}
         >
-          <form onSubmit={onSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <Dialog.Title>Course Administration</Dialog.Title>
             <Dialog.Description>
               Administer courses
               <p>{courseAddress}</p>
             </Dialog.Description>
             <div className={vstack({ gap: 4, mt: 4 })}>
-            </div>
-            <Text variant="heading" alignSelf="flex-start">
+              <Text variant="heading" alignSelf="flex-start">
                 Sessions:
               </Text>
-              <input
-              type="datetime-local"
-              {...register("startDate")}
+              <Input
+                type="datetime-local"
+                {...register("startDate", { 
+                  valueAsDate: true,
+                  required: true 
+                })}
               />
-              <input
-              type="number"
-              {...register("duration")}
+              <Input
+                type="number"
+                {...register("duration", { 
+                  required: true,
+                  min: 1
+                })}
               />
+            </div>
             <div
               className={hstack({ gap: 2, justifyContent: "flex-end", pt: 4 })}
             >

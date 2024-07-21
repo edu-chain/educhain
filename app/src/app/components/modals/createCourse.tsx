@@ -14,6 +14,7 @@ import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import { Text } from '~/components/ui/text'
 import { useModalsProvider } from '~/app/context/modals'
+import { useProgramProvider } from "~/app/context/blockchain";
 
 type CourseDataForm = {
   name: string,
@@ -24,11 +25,11 @@ type CourseDataForm = {
 }
 
 function CreateCourseModal() {
-  const { CreateCourseModalContext } = useModalsProvider()
-  const { open, setOpen } = CreateCourseModalContext
+  const { CreateCourseModalContext } = useModalsProvider();
+  const { open, setOpen } = CreateCourseModalContext;
 
-  const program = useProgram()
-  const wallet = useWallet()
+  const { CourseContext, GeneralContext } = useProgramProvider();
+  const wallet = useWallet();
 
   const { handleSubmit, register, reset } = useForm<CourseDataForm>({
     defaultValues: {
@@ -37,16 +38,13 @@ function CreateCourseModal() {
       groupSize: 3,
       admin1: wallet.publicKey?.toBase58() || "",
       admin2: "",
-    }
+    },
   });
 
   const onSubmit = async (data: CourseDataForm) => {
-
-    const admins = [
-      new PublicKey(data.admin1),
-    ]
+    const admins = [new PublicKey(data.admin1)];
     if (data.admin2 !== "") {
-      admins.push(new PublicKey(data.admin2))
+      admins.push(new PublicKey(data.admin2));
     }
 
     const courseData: CourseData = {
@@ -54,9 +52,14 @@ function CreateCourseModal() {
       maxStudents: new BN(data.maxStudents),
       groupSize: new BN(data.groupSize),
       admins: admins,
-    }
+      school: GeneralContext.selectedItems.school!, // Assuming a school is selected
+      schoolOwner: wallet.publicKey!, // Assuming the wallet owner is the school owner
+      id: new BN(0), // This will be set by the program
+      sessionsCounter: new BN(0),
+      groupsCounter: new BN(0),
+    };
 
-    createCourseDataAccount(program, wallet, courseData);
+    CourseContext.createCourse(courseData);
     reset();
     setOpen(false);
   };

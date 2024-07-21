@@ -30,6 +30,7 @@
     "@types/node": "20.11.17",
     "@types/react": "18.2.67",
     "@types/react-dom": "18.2.22",
+    "@tanstack/react-query-devtools": "^5.51.11",
     "eslint": "8.56.0",
     "eslint-config-next": "13.5.1",
     "typescript": "5.4.2"

@@ -159,15 +159,14 @@ function SchoolData(
 function SchoolPage() {
   const wallet = useWallet();
   const { SchoolContext, CourseContext } = useProgramProvider();
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchSchoolData = async () => {
       if (wallet.publicKey) {
         await SchoolContext.fetchSchoolByOwner(wallet.publicKey);
-        setIsLoading(false);
       }
     };
+    console.log(wallet.publicKey, SchoolContext.currentSchool)
     fetchSchoolData();
   }, [wallet.publicKey, SchoolContext]);
 
@@ -177,7 +176,7 @@ function SchoolPage() {
     }
   }, [SchoolContext.currentSchool, CourseContext]);
 
-  if (isLoading) return <Loading />;
+  if (!SchoolContext.isLoading) return <Loading />;
 
   return (
     <div className={css({ p: 6 })}>

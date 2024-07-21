@@ -39,6 +39,7 @@ interface ICourse {
   error: unknown
   createCourse: (courseData: CourseData) => void
   fetchCoursesBySchool: (schoolAddress: PublicKey) => Promise<void>
+  fetchCoursesByStudent: (studentAddress: PublicKey) => Promise<void>
   selectCourse: (course: PublicKey | null) => void
 }
 
@@ -96,7 +97,12 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
     setCoursesParams({ type: 'fromSchool', publicKey: schoolAddress })
     await coursesResult.fetchCoursesBySchool(schoolAddress)
   }, [coursesResult])
-
+  
+  const fetchCoursesByStudent = useCallback(async (studentAddress: PublicKey) => {
+    setCoursesParams({ type: 'fromStudent', publicKey: studentAddress })
+    await coursesResult.fetchCoursesByStudent(studentAddress)
+  }, [coursesResult])
+  
   const fetchSessionsByCourse = useCallback(async (courseAddress: PublicKey) => {
     await sessionsResult.fetchSessionsByCourse(courseAddress)
   }, [sessionsResult])
@@ -110,6 +116,7 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
       ...coursesResult,
       selectCourse,
       fetchCoursesBySchool,
+      fetchCoursesByStudent,
     },
     SessionContext: {
       ...sessionsResult,

@@ -12,11 +12,11 @@ export default function StudentPage() {
   const { isLoading, error } = CourseContext;
   const { selectedItems } = GeneralContext;
 
-    console.log("course context:", CourseContext);
-
   useEffect(() => {
     if (wallet.publicKey) {
-      CourseContext.selectCourse(null); // Reset course selection when the page loads
+      CourseContext.selectCourse(null);
+      CourseContext.fetchCoursesByStudent(wallet.publicKey);
+       // Reset course selection when the page loads
     }
   }, [wallet.publicKey]);
 

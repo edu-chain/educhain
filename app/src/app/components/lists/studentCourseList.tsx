@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from "react";
-import { PublicKey } from "@solana/web3.js";
 import Loading from "~/app/components/loading";
 import { useProgramProvider } from "~/app/context/blockchain";
 import { useWallet } from "@solana/wallet-adapter-react";

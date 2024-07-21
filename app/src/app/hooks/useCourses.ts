@@ -47,6 +47,11 @@ export function useCourses(params: UseCoursesParams) {
      [program, queryClient]
    );
 
+   const fetchCoursesByStudent = useCallback(async (studentAddress: PublicKey) => {
+     const courses = await getCoursesInfosFromStudent(program, studentAddress);
+     queryClient.setQueryData(["courses", studentAddress.toString()], courses);
+   }, [program, queryClient]);
+
    const createCourseMutation = useMutation({
      mutationFn: (courseData: CourseData) =>
        createCourseDataAccount(program, wallet, courseData),
@@ -78,6 +83,7 @@ export function useCourses(params: UseCoursesParams) {
      createCourse: createCourseMutation.mutate,
      fetchCoursesBySchool,
      fetchSessionsByCourse,
+     fetchCoursesByStudent,
      createSession: createSessionMutation.mutate,
    };
 }

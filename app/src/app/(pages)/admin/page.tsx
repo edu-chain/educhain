@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
-import { getSchoolInfos, withdrawal } from "@api/educhain";
 import { SchoolAccountData } from "~/app/types/educhain";
 
 import { vstack, grid, hstack } from "styled-system/patterns";
@@ -14,57 +13,61 @@ import CreateSchoolModal from "~/app/components/modals/createSchool";
 import CreateCourseModal from "~/app/components/modals/createCourse";
 import CourseCreate from "~/app/components/cards/courseCreateCard";
 import AdminCoursesList from "~/app/components/lists/adminCoursesList";
-import { useProgram } from "~/app/components/solana/solana-provider";
-import { getBalance } from "~/app/components/solana/solana.helpers";
 import { School } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import Loading from "~/app/components/loading";
+import { useProgramProvider } from "~/app/context/blockchain";
 
 function SchoolCreate() {
-
   const { CreateSchoolModalContext } = useModalsProvider();
   const { setOpen } = CreateSchoolModalContext;
 
   return (
-      <div className={vstack({
+    <div
+      className={vstack({
         gap: "20",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh"
-      })}>
-        <h1 className={css({
-            fontSize: "4xl",
-            fontWeight: "bold",
-            color: "text"
-        })}>{'Ce compte n\'a pas d\'école associée'}</h1>
-        <Button onClick={() => setOpen(true)} size={"2xl"}>
-            Créer une école
-            <School/>
-        </Button>
-        <CreateSchoolModal />
-      </div>
+        height: "100%",
+      })}
+    >
+      <h1
+        className={css({
+          fontSize: "4xl",
+          fontWeight: "bold",
+          color: "text",
+        })}
+      >
+        {"Ce compte n'a pas d'école associée"}
+      </h1>
+      <Button margin="10%" onClick={() => setOpen(true)} size={"2xl"}>
+        Créer une école
+        <School />
+      </Button>
+      <CreateSchoolModal />
+    </div>
   );
 }
 
 function SchoolData(
-  {schoolData, schoolAddress}:
-  {schoolData: SchoolAccountData, schoolAddress: PublicKey}
+  { schoolData, schoolAddress }:
+  { schoolData: SchoolAccountData, schoolAddress: PublicKey }
 ) {
-
   const [balance, setBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const program = useProgram();
   const wallet = useWallet();
+  const { SchoolContext } = useProgramProvider();
 
   const fetchBalance = async () => {
-    const balance = await getBalance(schoolAddress);
+    // Implement getBalance in the context if needed
+    const balance = await SchoolContext.getBalance(schoolAddress);
     setBalance(Number(balance.toFixed(2)));
   };
 
   const handleWithdrawal = async () => {
-    await withdrawal(program, wallet, schoolAddress);
+    await SchoolContext.withdrawal(schoolAddress);
   };
 
   useEffect(() => {
@@ -73,27 +76,31 @@ function SchoolData(
       setIsLoading(false);
     };
     mount();
-  });
+  }, [schoolAddress]);
 
   return (
     <>
-      {
-        isLoading ?
-          <Loading />
-        :
-      <>
-        <div className={hstack({
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "100%",
-        })}>
-          <h1 className={css({
-            fontSize: "4xl",
-            fontWeight: "bold",
-            color: "text",
-          })}>{schoolData.name}</h1>
-          {
-            balance > 0 ? 
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <>
+          <div
+            className={hstack({
+              justifyContent: "space-between",
+              alignItems: "center",
+              maxWidth: "100%",
+            })}
+          >
+            <h1
+              className={css({
+                fontSize: "4xl",
+                fontWeight: "bold",
+                color: "text",
+              })}
+            >
+              {schoolData.name}
+            </h1>
+            {balance > 0 ? (
               <Badge
                 size="lg"
                 variant="solid"
@@ -103,78 +110,85 @@ function SchoolData(
                   _hover: {
                     bg: "purple",
                     transform: "scale(1.1)",
-                  }
+                  },
                 })}
-              >Withdrawal: {balance.toFixed(2)} SOL</Badge>
-            : 
-              <Badge
-                size="lg"
-                variant="outline"
-              >No revenue to withdraw</Badge>
-          }
-        </div>
-        <p className={css({
-            fontSize: "xl",
-            fontWeight: "bold",
-            color: "text",
-        })}>{schoolAddress.toBase58()}</p>
-        <hr
-        className={css({
-          width: "100%",
-          height: "5px",
-          backgroundColor: "ui.background",
-          border: "none",
-          margin: "10px 0",
-        })}/>
-        <div className={grid({
-            gap: 6,
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 400px))",
-            gridAutoRows: "minmax(300px, 1fr)",
-          })}
+              >
+                Withdrawal: {balance.toFixed(2)} SOL
+              </Badge>
+            ) : (
+              <Badge size="lg" variant="outline">
+                No revenue to withdraw
+              </Badge>
+            )}
+          </div>
+          <p
+            className={css({
+              fontSize: "xl",
+              fontWeight: "bold",
+              color: "text",
+            })}
+          >
+            {schoolAddress.toBase58()}
+          </p>
+          <hr
+            className={css({
+              width: "100%",
+              height: "5px",
+              backgroundColor: "ui.background",
+              border: "none",
+              margin: "10px 0",
+            })}
+          />
+          <div
+            className={grid({
+              gap: 6,
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 400px))",
+              gridAutoRows: "minmax(300px, 1fr)",
+            })}
           >
             <AdminCoursesList schoolAddress={schoolAddress} />
             <CourseCreate />
-        </div>
-      </>
-      }
+          </div>
+        </>
+      )}
       <CreateCourseModal />
     </>
   );
 }
 
 function SchoolPage() {
-
-  const program = useProgram();
   const wallet = useWallet();
-  
-  const [schoolData, setSchoolData] = useState<SchoolAccountData | null>(null);
-  const [schoolAddress, setSchoolAddress] = useState<PublicKey | null>(null);
+  const { SchoolContext, CourseContext } = useProgramProvider();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchSchoolData = async () => {
-      const data = await getSchoolInfos(program, wallet.publicKey as PublicKey);
-      if (data) {
-        setSchoolData(data.account);
-        setSchoolAddress(data.publicKey);
+      if (wallet.publicKey) {
+        await SchoolContext.fetchSchoolByOwner(wallet.publicKey);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     fetchSchoolData();
-  },[wallet.publicKey, program]);
-  
+  }, [wallet.publicKey, SchoolContext]);
+
+  useEffect(() => {
+    if (SchoolContext.currentSchool) {
+      CourseContext.fetchCoursesBySchool(SchoolContext.currentSchool.publicKey);
+    }
+  }, [SchoolContext.currentSchool, CourseContext]);
+
+  if (isLoading) return <Loading />;
 
   return (
-    <div className={css({p: 6})}>
-      {
-        isLoading ?
-          <Loading />
-        :
-        schoolData && schoolAddress ?
-          <SchoolData schoolData={schoolData} schoolAddress={schoolAddress}/>
-        : 
-          <SchoolCreate/>
-      }
+    <div className={css({ p: 6 })}>
+      {SchoolContext.currentSchool ? (
+        <SchoolData
+          schoolData={SchoolContext.currentSchool.account}
+          schoolAddress={SchoolContext.currentSchool.publicKey}
+        />
+      ) : (
+        <SchoolCreate />
+      )}
     </div>
   );
 }

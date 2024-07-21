@@ -32,19 +32,28 @@ function Navbar() {
   
   return (
     <nav className={css({ bg: "ui.background" })}>
-      <div className={hstack({ maxWidth: "", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", mx: "auto", p: 4 })}>
+      <div
+        className={hstack({
+          maxWidth: "",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+          mx: "auto",
+          p: 4,
+        })}
+      >
         <FullLogo />
         <NavBar />
-        <div className={hstack({ alignItems: "center", justifyContent: "flex-end", w: "full", md: { flex: 1, w: "auto" } })} id="navbar-user">
+        {/* <div className={hstack({ alignItems: "center", justifyContent: "flex-end", w: "full", md: { flex: 1, w: "auto" } })} id="navbar-user">
           <UserMenu />
-        </div>
-        <WalletMultiButton />
+        </div> */}
         <div>
+          <WalletMultiButton />
           {balance && <p>{balance} SOL</p>}
         </div>
       </div>
     </nav>
-  )
+  );
 }
 
 export default Navbar

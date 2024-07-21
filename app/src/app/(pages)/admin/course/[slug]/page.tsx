@@ -58,7 +58,7 @@ function MockCourse() {
         {courseData.name}
       </h1>
 
-      <SessionMap sessions={courseData.sessions} />
+      {/* <SessionMap sessions={courseData.sessions} /> */}
 
       <div
         className={css({ position: "fixed", bottom: "24px", right: "24px" })}

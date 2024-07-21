@@ -1,35 +1,40 @@
 'use client'
 
-import { center } from "styled-system/patterns";
-import { css } from "styled-system/css";
+import { useEffect } from 'react'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { PublicKey } from '@solana/web3.js'
+import { useProgramProvider } from '~/app/context/blockchain'
+import Loading from '~/app/components/loading'
 
-import Divider from "~/app/components/divider";
-import useSchools from "~/app/components/hooks/useScools";
-import Loading from "~/app/components/loading";
-import SchoolsList from "~/app/components/lists/schoolsList";
+export default function Schools() {
+  const wallet = useWallet()
+  const { SchoolContext, GeneralContext } = useProgramProvider()
+  const { schools, isLoading, error, selectSchool } = SchoolContext
+  const { selectedItems } = GeneralContext
 
-export default function SchoolsPage() {
+  useEffect(() => {
+    if (wallet.publicKey) {
+      selectSchool(wallet.publicKey)
+    }
+  }, [wallet.publicKey, selectSchool])
 
-  const { schoolsList, loading, errorMessage } = useSchools();
-
-  if (errorMessage) {
-    return <div>{errorMessage}</div>;
-  }
+  if (isLoading) return <Loading />
+  if (error) return <div>Error: {error.toString()}</div>
 
   return (
-    <div className={css({ p: 6})}>
-      <h1 className={center({
-          fontSize: '4xl',
-          fontWeight: "bold",
-          color: "primary",
-        })}>Schools</h1>
-      <Divider />
-      {
-        loading ?
-          <Loading />
-        :
-          <SchoolsList schoolsList={schoolsList} />
-      }
+    <div>
+      <h1>Schools</h1>
+      <ul>
+        {schools?.map((school) => (
+          <li
+            key={school.publicKey.toString()}
+            onClick={() => selectSchool(school.publicKey)}
+            // isSelected={selectedItems.school?.equals(school.publicKey)}
+          >
+            {school.account.name}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

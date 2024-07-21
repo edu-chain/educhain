@@ -1,106 +1,50 @@
-import { useState, useEffect } from "react";
-import { PublicKey } from "@solana/web3.js";
-import { useWallet } from "@solana/wallet-adapter-react";
-import {
-  CourseAccountData,
-  Infos,
-  StudentSubscriptionDataAccount
-} from "~/app/types/educhain";
-import { getStudentSubscriptionInfos, subscribeToCourse } from "@api/educhain";
+'use client'
 
-import { css } from "styled-system/css";
-import { center, gridItem, vstack } from "styled-system/patterns";
+import { useEffect, useState } from 'react'
+import { Infos, CourseData } from '~/app/types/educhain'
+import { ProgramAccount } from '@coral-xyz/anchor'
+import { PublicKey } from '@solana/web3.js'
+import BN from 'bn.js'
+import { useProgramProvider } from '~/app/context/blockchain'
 
-import { useProgram } from "~/app/components/solana/solana-provider";
-import { Badge } from "~/components/ui/badge";
-import Loading from "../loading";
+type CourseType = Infos<CourseData> | ProgramAccount<{
+  id: BN;
+  school: PublicKey;
+  schoolOwner: PublicKey;
+  name: string;
+  admins: PublicKey[];
+  sessionsCounter: BN;
+  groupsCounter: BN;
+}>
 
+type CourseCardProps = {
+  coursePublicKey: PublicKey
+}
 
-export default function CourseCardSubscription(
-  { course }: { course: Infos<CourseAccountData> })
-{
-
-  const [schoolName, setSchool] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [subscription, setSubscription] = useState<StudentSubscriptionDataAccount | null>(null);
-
-  const program = useProgram();
-  const wallet = useWallet();
-
-  const handleSubscription = async() => {
-    await subscribeToCourse(
-      program,
-      wallet,
-      course.publicKey,
-      "name of what?"
-    );
-  };
+export default function CourseCardSubscription({ coursePublicKey }: CourseCardProps) {
+  const { CourseContext } = useProgramProvider()
+  const { courses } = CourseContext
+  const [course, setCourse] = useState<CourseType | null>(null)
 
   useEffect(() => {
-    program.account.schoolDataAccount.fetch(course.account.school)
-      .then((school) => {
-        setSchool(school.name);
-        getStudentSubscriptionInfos(
-          program,
-          wallet.publicKey as PublicKey,
-          course.publicKey
-        ).then((studentSubscription) => {
-          setSubscription(studentSubscription);
-        }).catch((error) => {
-          throw error;
-        });
-      })
-      .catch((error) => {
-        setErrorMessage(error.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    const foundCourse = courses?.find(c => c.publicKey.equals(coursePublicKey))
+    if (foundCourse) {
+      setCourse(foundCourse)
+    }
+  }, [courses, coursePublicKey])
 
-  });
-
-  if (errorMessage) {
-    return <div>{errorMessage}</div>;
+  if (!course) {
+    return <div>Loading course...</div>
   }
 
+  const { name, school, sessionsCounter } = course.account
+
   return (
-    <>
-    {
-      loading ?
-        <Loading />
-      :
-        <div className={gridItem({backgroundColor: 'lightgray'})}>
-          <div className={vstack({
-            alignItems: "center",
-            justifyContent: "space-between",
-          })}>
-            <div className={center({
-              fontSize: '2xl',
-              fontWeight: "bold",
-              color: "primary",
-            })}>{course.account.name}</div>
-            <div>{schoolName}</div>
-            {
-              subscription ?
-                <Badge size="lg">Subscribed</Badge>
-              :
-                <Badge 
-                  onClick={handleSubscription} 
-                  size="lg"
-                  variant="solid"
-                  className={css({
-                    _hover: {
-                      cursor: "pointer",
-                      backgroundColor: "green",
-                      transform: "scale(1.1)" 
-                    }
-                  })}
-                >Buy course (3 SOL)</Badge>
-            }
-          </div>
-        </div>
-    }
-    </>
-  );
+    <div>
+      <h3>{name}</h3>
+      <p>School: {school?.toString()}</p>
+      <p>Sessions: {sessionsCounter?.toString()}</p>
+      {/* Add more course details as needed */}
+    </div>
+  )
 }

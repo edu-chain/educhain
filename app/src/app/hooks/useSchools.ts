@@ -34,8 +34,6 @@ export function useSchools() {
   };
 
   const getBalance = async (schoolAddress: PublicKey) => {
-    // Implement getBalance logic here
-    // This might involve calling a Solana RPC method to get the balance
     return 0; // Placeholder
   };
 

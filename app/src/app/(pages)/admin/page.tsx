@@ -166,17 +166,19 @@ function SchoolPage() {
         await SchoolContext.fetchSchoolByOwner(wallet.publicKey);
       }
     };
-    console.log(wallet.publicKey, SchoolContext.currentSchool)
     fetchSchoolData();
-  }, [wallet.publicKey, SchoolContext]);
+  }, [wallet.publicKey]);
 
   useEffect(() => {
-    if (SchoolContext.currentSchool) {
-      CourseContext.fetchCoursesBySchool(SchoolContext.currentSchool.publicKey);
-    }
-  }, [SchoolContext.currentSchool, CourseContext]);
+    const fetchCourses = async () => {
+      if (SchoolContext.currentSchool) {
+        await CourseContext.fetchCoursesBySchool(SchoolContext.currentSchool.publicKey);
+      }
+    };
+    fetchCourses();
+  }, [SchoolContext.currentSchool]);
 
-  if (!SchoolContext.isLoading) return <Loading />;
+  if (SchoolContext.isLoading) return <Loading />;
 
   return (
     <div className={css({ p: 6 })}>

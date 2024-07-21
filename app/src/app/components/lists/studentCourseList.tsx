@@ -6,21 +6,22 @@ import { useProgramProvider } from "~/app/context/blockchain";
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as Accordion from "~/components/ui/accordion"
 import { ChevronDownIcon } from "lucide-react"
+import { StudentCourseSessionsList } from "./studentCourseSessionsList";
 
 export default function StudentCourseList() {
   const wallet = useWallet();
-  const { CourseContext } = useProgramProvider();
+  const { CourseContext, GeneralContext } = useProgramProvider();
   const { courses, isLoading, error, selectCourse } = CourseContext;
+  const { selectedItems } = GeneralContext;
 
   useEffect(() => {
     if (wallet.publicKey) {
       selectCourse(null); // Reset course selection when the component mounts
     }
-  }, [wallet.publicKey, selectCourse]);
+  }, [wallet.publicKey]);
 
   if (isLoading) return <Loading />;
   if (error) return <div>Error: {error.toString()}</div>;
-
 
   return (
     <Accordion.Root>
@@ -39,6 +40,9 @@ export default function StudentCourseList() {
             {/* You can add more course details here if needed */}
             <p>School: {course?.account?.school?.toString()}</p>
             <p>Sessions: {course?.account?.sessionsCounter?.toString()}</p>
+            {selectedItems.course === course.publicKey && (
+              <StudentCourseSessionsList />
+            )}
           </Accordion.ItemContent>
         </Accordion.Item>
       ))}

@@ -3,7 +3,7 @@
 import React, { ReactNode, createContext, useContext, useState, useCallback } from 'react'
 import { useCourses, UseCoursesParams } from '../hooks/useCourses'
 import { useSchools } from '../hooks/useSchools'
-import { useSessions } from '../hooks/useSessions'
+import { UseSessionsParams, useSessions } from '../hooks/useSessions'
 import { CourseData, SchoolAccountData, SessionData, Infos } from '~/app/types/educhain'
 import { PublicKey } from "@solana/web3.js"
 import { useQueryClient } from '@tanstack/react-query'
@@ -70,8 +70,9 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
   const queryClient = useQueryClient()
   const schoolsResult = useSchools()
   const [coursesParams, setCoursesParams] = useState<UseCoursesParams>({ type: 'all' })
+  const [sessionsParams, setSessionsParams] = useState<UseSessionsParams>({ type: 'all' })
   const coursesResult = useCourses(coursesParams)
-  const sessionsResult = useSessions()
+  const sessionsResult = useSessions(sessionsParams)
 
   const selectSchool = useCallback((school: PublicKey | null) => {
     setSelectedCourse(null)
@@ -104,6 +105,7 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [coursesResult])
   
   const fetchSessionsByCourse = useCallback(async (courseAddress: PublicKey) => {
+    setSessionsParams({ type: 'fromCourse', publicKey: courseAddress })
     await sessionsResult.fetchSessionsByCourse(courseAddress)
   }, [sessionsResult])
 

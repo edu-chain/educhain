@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { Infos, CourseData } from '~/app/types/educhain'
-import { ProgramAccount } from '@coral-xyz/anchor'
+import { ProgramAccount, BN } from '@coral-xyz/anchor'
 import { PublicKey } from '@solana/web3.js'
-import BN from 'bn.js'
 import { useProgramProvider } from '~/app/context/blockchain'
 
 type CourseType = Infos<CourseData> | ProgramAccount<{

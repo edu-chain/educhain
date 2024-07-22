@@ -55,7 +55,7 @@ function CreateSchoolModal() {
                   Cancel
                 </Button>
               </Dialog.CloseTrigger>
-              <Button type="submit">Create Course</Button>
+              <Button type="submit">Create School</Button>
             </div>
           </form>
         </Dialog.Content>

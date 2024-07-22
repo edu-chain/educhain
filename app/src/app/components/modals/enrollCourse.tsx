@@ -144,7 +144,7 @@ function EnrollCourseModal() {
                   Cancel
                 </Button>
               </Dialog.CloseTrigger>
-              <Button type="submit">Create Course</Button>
+              <Button type="submit">Enroll in Course</Button>
             </div>
           </form>
         </Dialog.Content>

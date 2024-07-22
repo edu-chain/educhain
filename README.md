@@ -80,6 +80,13 @@ https://educhain-self.vercel.app
 # Program
 https://solscan.io/account/BMuxBtE1aJ8dJdjjXybV81iYUiR4ribMuc6HALfEYSBH?cluster=devnet
 
+# Lauching tests
+```
+$ yarn install
+$ anchor build
+$ anchor test
+```
+
 # Authors
 Teddy Blanco
 Antoine Servant

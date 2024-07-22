@@ -10,6 +10,7 @@ import { useProgram } from "~/app/components/solana/solana-provider";
 import { Infos, StudentSubscriptionDataAccount } from "~/app/types/educhain";
 import { Button } from "~/components/ui/button";
 import * as Table from '~/components/ui/table';
+import * as Card from '~/components/ui/card';
 
 function StudentList({ students }: { students: Infos<StudentSubscriptionDataAccount>[] }) {
   return (
@@ -110,18 +111,30 @@ export default function CreateGroups() {
       <Divider />
       <StudentList students={students} />
       <Divider />
-      {
-        groups ?
-        groups.map((group, index) => (
-          <div key={index} className={css({ mt: 6 })}>
-            <h2>Group {index + 1}:</h2>
-          <h2>Common interest: {group.common_interest}</h2>
-          <p>Average commitment: {group.average_commitment}</p>
-          {group.members.map((member) => (
-            <p key={member.id}>{findNameStudent(member.id)} - {member.skills} - {member.commitment} - {member.interest}</p>
+{groups ? (
+        <div className={css({ mt: 6, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 4 })}>
+          {groups.map((group, index) => (
+            <Card.Root key={index}>
+              <Card.Header>
+                <Card.Title>Group {index + 1}</Card.Title>
+              </Card.Header>
+              <Card.Body>
+                <p className={css({ fontWeight: "bold", mb: 2 })}>Common interest: {group.common_interest}</p>
+                <p className={css({ mb: 4 })}>Average commitment: {group.average_commitment}</p>
+                <h3 className={css({ fontWeight: "bold", mb: 2 })}>Members:</h3>
+                {group.members.map((member) => (
+                  <div key={member.id} className={css({ mb: 2 })}>
+                    <p className={css({ fontWeight: "semibold" })}>{findNameStudent(member.id)}</p>
+                    <p>Skills: {member.skills}</p>
+                    <p>Commitment: {member.commitment}</p>
+                    <p>Interest: {member.interest}</p>
+                  </div>
+                ))}
+              </Card.Body>
+            </Card.Root>
           ))}
         </div>
-      ))
+      )
       :
         <Button
           className={css({ mt: 6 })}

@@ -54,6 +54,7 @@ export function StudentCourseSessionsList() {
   }
 
   if (isLoading) return <Loading />;
+  if(!sessions || sessions.length === 0) return <div>No sessions</div>;
 
   return (
     <div className={css({

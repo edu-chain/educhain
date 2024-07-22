@@ -52,7 +52,7 @@ export default function CoursesPage() {
         })}
       >
         {courses?.map((course) => (
-           <EnrollCourseCard course={course} />
+           <EnrollCourseCard course={course} key={course.publicKey.toString()} />
         ))}
       </div>
       <EnrollCourseModal />

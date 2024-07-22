@@ -60,7 +60,6 @@ export function StudentCourseSessionsList() {
       maxHeight: "30vh",
       overflow: "auto",
     })}>
-      <div>Sessions from {selectedItems.course?.toBase58()}</div>
       <div>
         { sessions?.map((session) => (
           <div className={hstack({

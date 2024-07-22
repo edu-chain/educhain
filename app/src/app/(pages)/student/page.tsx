@@ -27,12 +27,6 @@ export default function StudentPage() {
   return (
     <div>
       <StudentCourseList />
-      {selectedItems.course && (
-        <div>
-          <h2>Selected Course: {selectedItems.course.toString()}</h2>
-          {/* You can add more details about the selected course here */}
-        </div>
-      )}
     </div>
   );
 }

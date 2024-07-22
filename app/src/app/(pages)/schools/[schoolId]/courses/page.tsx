@@ -11,6 +11,8 @@ import { Badge } from "~/components/ui/badge"
 import { Book } from "lucide-react"
 import { useParams } from 'next/navigation'
 import { PublicKey } from '@solana/web3.js'
+import EnrollCourseCard from '~/app/components/cards/enrollCourseCard'
+import EnrollCourseModal from '~/app/components/modals/enrollCourse'
 
 export default function SchoolCoursesPage() {
   const wallet = useWallet()
@@ -53,26 +55,10 @@ export default function SchoolCoursesPage() {
         })}
       >
         {courses?.map((course) => (
-          <Card.Root key={course.publicKey.toString()}>
-            <Card.Header>
-              <Card.Title className={hstack({ gap: 2, alignItems: "center" })}>
-                <Book
-                  className={css({ color: "blue.500", width: 6, height: 6 })}
-                />
-                {course.account.name}
-              </Card.Title>
-            </Card.Header>
-            <Card.Body>
-              <Badge
-                variant="outline"
-                className={css({ alignSelf: "flex-start" })}
-              >
-                {course.account.sessionsCounter?.toString() || "0"} sessions
-              </Badge>
-            </Card.Body>
-          </Card.Root>
+          <EnrollCourseCard course={course} />
         ))}
       </div>
+      <EnrollCourseModal />
     </div>
   );
 }

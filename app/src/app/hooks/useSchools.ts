@@ -3,15 +3,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Infos, SchoolAccountData } from "~/app/types/educhain";
 import { useProgram } from "../components/solana/solana-provider";
 import { createSchoolDataAccount } from "@api/educhain";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { getSchoolInfos } from "@api/educhain";
-import { PublicKey } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { useState } from "react";
 
 export function useSchools() {
   const queryClient = useQueryClient();
   const program = useProgram();
   const wallet = useWallet();
+  const {connection} = useConnection();
   const [currentSchool, setCurrentSchool] = useState<Infos<SchoolAccountData> | null>(null);
 
   const schoolsQuery = useQuery({
@@ -34,7 +35,8 @@ export function useSchools() {
   };
 
   const getBalance = async (schoolAddress: PublicKey) => {
-    return 0; // Placeholder
+    const balance = await connection.getBalance(schoolAddress);
+    return balance / LAMPORTS_PER_SOL;
   };
 
   const withdrawal = async (schoolAddress: PublicKey) => {

@@ -88,6 +88,6 @@ $ anchor test
 ```
 
 # Authors
-Teddy Blanco
-Antoine Servant
-Julien Bonneton
+- Teddy Blanco
+- Antoine Servant
+- Julien Bonneton

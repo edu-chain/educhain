@@ -7,6 +7,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { getSchoolInfos } from "@api/educhain";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { useState } from "react";
+import { withdrawal as _withdrawal } from "@api/educhain";
 
 export function useSchools() {
   const queryClient = useQueryClient();
@@ -40,8 +41,7 @@ export function useSchools() {
   };
 
   const withdrawal = async (schoolAddress: PublicKey) => {
-    // Implement withdrawal logic here
-    // This should call the withdrawal function from your Solana program
+    await _withdrawal(program, wallet, schoolAddress);
   };
 
   return {

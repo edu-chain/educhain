@@ -222,6 +222,29 @@ export async function getCoursesInfosFromStudent(
   return coursesMapped as Infos<CourseData>[];
 }
 
+export async function getCoursesExcludingStudentCourses(
+  program: Program<Educhain>,
+  studentAddress: PublicKey
+) : Promise<Infos<CourseData>[]> {
+
+  const subscriptions = await program.account.studentSubscriptionDataAccount.all([
+    {
+      memcmp: {
+        offset: 40,
+        bytes: studentAddress.toBase58(),
+      },
+    },
+  ]);
+
+  const courses = await program.account.courseDataAccount.all();
+
+  const studentCourses = subscriptions.map(subscription => subscription.account.course.toBase58());
+
+  const coursesFiltered = courses.filter(course => !studentCourses.includes(course.publicKey.toBase58()));
+
+  return coursesFiltered;
+}
+
 export async function getSessionsInfosFromCourse(
   program: Program<Educhain>,
   courseAddress: PublicKey

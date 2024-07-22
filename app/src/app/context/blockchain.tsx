@@ -38,9 +38,12 @@ interface ICourse {
   isLoading: boolean
   error: unknown
   createCourse: (courseData: CourseData) => void
+  fetchCourses: () => Promise<void>
   fetchCoursesBySchool: (schoolAddress: PublicKey) => Promise<void>
   fetchCoursesByStudent: (studentAddress: PublicKey) => Promise<void>
+  fetchAllCoursesExcludingStudentCourses: (studentAddress: PublicKey) => Promise<void>
   selectCourse: (course: PublicKey | null) => void
+  enrollCourse: (courseAddress: PublicKey) => Promise<void>
 }
 
 interface ISession {
@@ -68,9 +71,10 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [currentItemType, setCurrentItemType] = useState<ItemType>()
 
   const queryClient = useQueryClient()
-  const schoolsResult = useSchools()
   const [coursesParams, setCoursesParams] = useState<UseCoursesParams>({ type: 'all' })
   const [sessionsParams, setSessionsParams] = useState<UseSessionsParams>({ type: 'all' })
+
+  const schoolsResult = useSchools()
   const coursesResult = useCourses(coursesParams)
   const sessionsResult = useSessions(sessionsParams)
 
@@ -94,6 +98,11 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [])
 
+  const fetchCourses = useCallback(async () => {
+    setCoursesParams({ type: 'all' })
+    await coursesResult.fetchCourses()
+  }, [coursesResult])
+
   const fetchCoursesBySchool = useCallback(async (schoolAddress: PublicKey) => {
     setCoursesParams({ type: 'fromSchool', publicKey: schoolAddress })
     await coursesResult.fetchCoursesBySchool(schoolAddress)
@@ -103,11 +112,20 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
     setCoursesParams({ type: 'fromStudent', publicKey: studentAddress })
     await coursesResult.fetchCoursesByStudent(studentAddress)
   }, [coursesResult])
+
+  const fetchAllCoursesExcludingStudentCourses = useCallback(async (studentAddress: PublicKey) => {
+    setCoursesParams({ type: 'coursesExcludingStudent', publicKey: studentAddress })
+    await coursesResult.fetchAllCoursesExcludingStudentCourses(studentAddress)
+  }, [coursesResult])
   
   const fetchSessionsByCourse = useCallback(async (courseAddress: PublicKey) => {
     setSessionsParams({ type: 'fromCourse', publicKey: courseAddress })
     await sessionsResult.fetchSessionsByCourse(courseAddress)
   }, [sessionsResult])
+
+  const enrollCourse = useCallback(async (courseAddress: PublicKey) => {
+    await coursesResult.enrollCourse(courseAddress)
+  }, [coursesResult])
 
   const value: ProgramContextType = {
     SchoolContext: {
@@ -119,6 +137,9 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
       selectCourse,
       fetchCoursesBySchool,
       fetchCoursesByStudent,
+      fetchCourses,
+      fetchAllCoursesExcludingStudentCourses,
+      enrollCourse,
     },
     SessionContext: {
       ...sessionsResult,

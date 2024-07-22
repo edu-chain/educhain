@@ -9,11 +9,16 @@ import { css } from 'styled-system/css'
 import * as Card from "~/components/ui/card"
 import { Badge } from "~/components/ui/badge"
 import { Book } from "lucide-react"
+import EnrollCourseModal from '~/app/components/modals/enrollCourse'
+import { useModalsProvider } from '~/app/context/modals'
+import { PublicKey } from '@solana/web3.js'
 
 export default function CoursesPage() {
   const wallet = useWallet()
-  const { CourseContext } = useProgramProvider()
-  const { courses, isLoading, error, enrollCourse } = CourseContext
+  const { CourseContext} = useProgramProvider()
+  const { courses, isLoading, error } = CourseContext
+  const { EnrollCourseModalContext } = useModalsProvider()
+  const { setOpen } = EnrollCourseModalContext
 
   useEffect(() => {
     if (wallet.publicKey) {
@@ -24,6 +29,11 @@ export default function CoursesPage() {
   if (isLoading) return <Loading />
   if (error) return <div>Error: {error.toString()}</div>
   if (!wallet.publicKey) return <div>Please connect your wallet</div>
+
+  const handleClick = (course: PublicKey) => {
+    CourseContext.selectCourse(course)
+    setOpen(true)
+  }
 
   return (
     <div className={css({ p: 6, bg: "gray.50", minHeight: "100vh" })}>
@@ -59,7 +69,7 @@ export default function CoursesPage() {
                   <Badge
                     variant="outline"
                     size="lg"
-                    onClick={() => enrollCourse(course.publicKey)}
+                    onClick={() => handleClick(course.publicKey)}
                     className={css({
                       cursor: "pointer",
                       "&:hover": {
@@ -93,6 +103,7 @@ export default function CoursesPage() {
           </Card.Root>
         ))}
       </div>
+      <EnrollCourseModal />
     </div>
   )
 }

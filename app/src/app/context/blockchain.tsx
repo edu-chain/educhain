@@ -4,7 +4,7 @@ import React, { ReactNode, createContext, useContext, useState, useCallback } fr
 import { useCourses, UseCoursesParams } from '../hooks/useCourses'
 import { useSchools } from '../hooks/useSchools'
 import { UseSessionsParams, useSessions } from '../hooks/useSessions'
-import { CourseData, SchoolAccountData, SessionData, Infos } from '~/app/types/educhain'
+import { CourseData, SchoolAccountData, SessionData, Infos, StudentSubscriptionDataAccount } from '~/app/types/educhain'
 import { PublicKey } from "@solana/web3.js"
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -43,7 +43,7 @@ interface ICourse {
   fetchCoursesByStudent: (studentAddress: PublicKey) => Promise<void>
   fetchAllCoursesExcludingStudentCourses: (studentAddress: PublicKey) => Promise<void>
   selectCourse: (course: PublicKey | null) => void
-  enrollCourse: (courseAddress: PublicKey) => Promise<void>
+  enrollCourse: (studentSubscriptionData: StudentSubscriptionDataAccount) => Promise<void>
 }
 
 interface ISession {
@@ -123,8 +123,8 @@ export const ProgramProvider: React.FC<{ children: ReactNode }> = ({ children })
     await sessionsResult.fetchSessionsByCourse(courseAddress)
   }, [sessionsResult])
 
-  const enrollCourse = useCallback(async (courseAddress: PublicKey) => {
-    await coursesResult.enrollCourse(courseAddress)
+  const enrollCourse = useCallback(async (studentSubscriptionData: StudentSubscriptionDataAccount) => {
+    await coursesResult.enrollCourse(studentSubscriptionData)
   }, [coursesResult])
 
   const value: ProgramContextType = {

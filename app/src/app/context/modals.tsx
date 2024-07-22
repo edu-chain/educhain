@@ -19,6 +19,11 @@ interface ICourseAdminModal {
   setCourseAddress: React.Dispatch<React.SetStateAction<string>>
 }
 
+interface IEnrollCourseModal {
+  open: boolean
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
+
 interface IAskGroupExchangeModal {
   open: boolean
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
@@ -29,6 +34,7 @@ type ModalsContextType = {
   AskGroupExchangeModalContext: IAskGroupExchangeModal;
   CreateSchoolModalContext: ICreateSchoolModal;
   CourseAdminModalContext: ICourseAdminModal;
+  EnrollCourseModalContext: IEnrollCourseModal;
 };
 
 // Create a context for the smart contract wallet
@@ -48,6 +54,7 @@ export const ModalsProvider: React.FC<ModalsProviderProps> = ({
   const [openCreateSchoolModal, setOpenCreateSchoolModal] = useState<boolean>(false)
   const [openCourseAdminModal, setOpenCourseAdminModal] = useState<boolean>(false)
   const [courseAddress, setCourseAddress] = useState<string>("");
+  const [openEnrollCourseModal, setOpenEnrollCourseModal] = useState<boolean>(false)
 
   const CreateCourseModalContext = {
     open: openCreateCourseModal,
@@ -71,13 +78,19 @@ export const ModalsProvider: React.FC<ModalsProviderProps> = ({
     setCourseAddress: setCourseAddress,
   }
 
+  const EnrollCourseModalContext = {
+    open: openEnrollCourseModal,
+    setOpen: setOpenEnrollCourseModal,
+  }
+
   return (
     <ModalsProviderContext.Provider
       value={{
         CreateCourseModalContext,
         AskGroupExchangeModalContext,
         CreateSchoolModalContext,
-        CourseAdminModalContext
+        CourseAdminModalContext,
+        EnrollCourseModalContext
       }}
     >
       {children}

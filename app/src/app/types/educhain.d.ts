@@ -83,9 +83,13 @@ type SessionAccounts = {
  */
 type StudentSubscriptionDataAccount = {
   course: PublicKey,
-  student: PublicKey,
+  student?: PublicKey,
   groupe?: PublicKey | null,
-  active: boolean,
+  active?: boolean,
+  name: string,
+  availability: number,
+  skills: string[],
+  interests: string,
 }
 
 type StudentSubscriptionAccounts = {

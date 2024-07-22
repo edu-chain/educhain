@@ -74,5 +74,13 @@ graph TB;
 - Typescript
 - solana/web3 js library
 
-## Hosting
-- vercel.app
+# Hosting
+https://educhain-self.vercel.app
+
+# Program
+https://solscan.io/account/BMuxBtE1aJ8dJdjjXybV81iYUiR4ribMuc6HALfEYSBH?cluster=devnet
+
+# Authors
+Teddy Blanco
+Antoine Servant
+Julien Bonneton

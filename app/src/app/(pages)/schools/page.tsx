@@ -52,9 +52,16 @@ export default function Schools() {
           <Link
             href={`/schools/${school.publicKey.toString()}/courses`}
             key={school.publicKey.toString()}
-            className={css({ textDecoration: "none" })}
+            className={css({
+              textDecoration: "none",
+              transition: "all 0.2s",
+              _hover: { transform: "scale(1.05)" },
+            })}
           >
-            <Card.Root key={school.publicKey.toString()} className={css({ _hover: { bg: "gray.100" } })}>
+            <Card.Root
+              key={school.publicKey.toString()}
+              className={css({ _hover: { bg: "gray.100" } })}
+            >
               <Card.Header>
                 <Card.Title
                   className={hstack({ gap: 2, alignItems: "center" })}

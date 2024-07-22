@@ -118,9 +118,8 @@ function CourseContent(course: Infos<CourseData>) {
   const program = useProgram();
 
   useEffect(() => {
-    getSessionsInfos(program, course.publicKey)
-      .then(setSessions);
-  }, []);
+    getSessionsInfos(program, course.publicKey).then(setSessions);
+  }, [course.publicKey]);
 
   return (
     <div className={css({ p: 6 })}>

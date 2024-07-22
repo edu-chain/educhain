@@ -2,27 +2,32 @@
 
 import { useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { vstack, hstack, grid } from "styled-system/patterns"
+import { grid, hstack } from "styled-system/patterns"
 import { useProgramProvider } from '~/app/context/blockchain'
 import Loading from '~/app/components/loading'
 import { css } from 'styled-system/css'
 import * as Card from "~/components/ui/card"
 import { Badge } from "~/components/ui/badge"
 import { Book } from "lucide-react"
+import { useParams } from 'next/navigation'
+import { PublicKey } from '@solana/web3.js'
 
-export default function CoursesPage() {
+export default function SchoolCoursesPage() {
   const wallet = useWallet()
   const { CourseContext } = useProgramProvider()
-  const { courses, isLoading, error, selectCourse } = CourseContext
+  const { courses, isLoading: coursesLoading, error: coursesError, fetchCoursesBySchool } = CourseContext
+  const params = useParams()
+  const schoolId = params.schoolId as string
 
   useEffect(() => {
-    if (wallet.publicKey) {
-      selectCourse(null) // Reset course selection when the page loads
+    console.log(wallet.publicKey && schoolId);
+    if (wallet.publicKey && schoolId) {
+      fetchCoursesBySchool(new PublicKey(schoolId));
     }
-  }, [wallet.publicKey, selectCourse])
+  }, [wallet.publicKey, schoolId])
 
-  if (isLoading) return <Loading />
-  if (error) return <div>Error: {error.toString()}</div>
+  if (coursesLoading) return <Loading />
+  if (coursesError) return <div>Error loading courses: {coursesError.toString()}</div>
   if (!wallet.publicKey) return <div>Please connect your wallet</div>
 
   return (
@@ -35,7 +40,7 @@ export default function CoursesPage() {
           color: "gray.800",
         })}
       >
-        Courses
+        Courses for {schoolId}
       </h1>
       <div
         className={grid({
@@ -64,20 +69,10 @@ export default function CoursesPage() {
               >
                 {course.account.sessionsCounter?.toString() || "0"} sessions
               </Badge>
-              <div
-                className={css({
-                  fontSize: "sm",
-                  color: "gray.600",
-                  wordBreak: "break-all",
-                  mt: 2,
-                })}
-              >
-                School: {course.account.school?.toString() || "Unknown"}
-              </div>
             </Card.Body>
           </Card.Root>
         ))}
       </div>
     </div>
-  )
+  );
 }

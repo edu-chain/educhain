@@ -70,6 +70,24 @@ export default function CreateGroups() {
   }, []);
 
   const handleCreateGroup = async () => {
+    const studentAmount = students.length;
+    const studentGroupAmount = Math.floor(studentAmount / 3);
+    const remainingStudents = studentAmount % 3;
+
+    
+    const directive = () => {
+      switch (remainingStudents) {
+        case 0:
+          return `Tu dois créer ${studentGroupAmount} groupes de 3 élèves.`;
+        case 1:
+          return `Tu dois créer ${studentGroupAmount - 1} groupes de 3 élèves et un groupe de 4 eleves.`;
+        case 2:
+          return `Tu dois créer ${studentGroupAmount - 1} groupes de 3 élèves et un groupe de 2 élèves.`;
+        default:
+          return `Tu dois créer ${studentGroupAmount} groupes de 3 élèves.`;
+      }
+    };
+
     const studentsPrompt = students.map((student) => {
       return `{"id": "${student.publicKey.toString()}", "availability": "${student.account.availability}", "interests": "${student.account.interests}", "skills": "${student.account.skills.join(", ")}"}`;
     });
@@ -81,7 +99,7 @@ export default function CreateGroups() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          "prompt": JSON.stringify(studentsPrompt),
+          "prompt": `${directive()}\n${JSON.stringify(studentsPrompt)}`,
         })
       }
     );

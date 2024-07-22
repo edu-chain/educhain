@@ -13,7 +13,7 @@ const promptSystem = `Tu es responsable pédagogique d'un cours de formation sur
 2. Intérêts similaires.
 3. Engagement similaire (les niveaux d'engagement doivent être proches).
 
-Utilise les informations fournies pour former des groupes de 3 personnes en respectant les critères ci-dessus. Assure-toi que chaque groupe ait une moyenne d'engagement similaire. Retourne le résultat en format JSON avec les informations suivantes pour chaque groupe :
+Utilise les informations fournies pour former des groupes en respectant les critères ci-dessus. Assure-toi que chaque groupe ait une moyenne d'engagement similaire. Retourne le résultat en format JSON avec les informations suivantes pour chaque groupe :
 - "members" : une liste des utilisateurs avec leurs noms d'utilisateur, compétence principale (la plus pertinente pour le groupe), engagement et intérêts
 - "average_commitment" : la moyenne des engagements des membres du groupe
 - "common_interest" : les intérêts communs des membres du groupe, si pas d'intérêts communs, utilise eventuellement les skills

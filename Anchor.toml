@@ -5,13 +5,13 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-educhain = "EQTpUfQNeenySvPPvwYw9rfyjC6gPNhnR7YikL8Y41m9"
+educhain = "BMuxBtE1aJ8dJdjjXybV81iYUiR4ribMuc6HALfEYSBH"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "Devnet"
 wallet = "~/.config/solana/devWallet.json"
 
 [scripts]

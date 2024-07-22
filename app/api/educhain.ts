@@ -15,7 +15,7 @@ import {
   AttendanceAccounts
 } from "~/app/types/educhain";
 
-const PROGRAM_ID = 'EQTpUfQNeenySvPPvwYw9rfyjC6gPNhnR7YikL8Y41m9';
+const PROGRAM_ID = 'BMuxBtE1aJ8dJdjjXybV81iYUiR4ribMuc6HALfEYSBH';
 
 function getSchoolAddress(
   ownerSchoolKey: PublicKey
@@ -414,26 +414,33 @@ export async function createSessionDataAccount(
 export async function subscribeToCourse(
   program: Program<Educhain>,
   wallet: WalletContextState,
-  courseAddress: PublicKey,
-  name: string
+  studentSubscriptionData: StudentSubscriptionDataAccount
 ) {
 
   if (!wallet || !wallet.publicKey || !wallet.signTransaction) {
     throw new Error("Wallet error!");
   }
 
-  const studentSubscriptionAddress = getStudentSubscriptionAddress(wallet.publicKey, courseAddress);
+  const studentSubscriptionAddress = getStudentSubscriptionAddress(
+    wallet.publicKey,
+    studentSubscriptionData.course
+  );
 
-  const course = await program.account.courseDataAccount.fetch(courseAddress);
+  const course = await program.account.courseDataAccount.fetch(studentSubscriptionData.course);
 
   const studentSubscriptionAccounts: StudentSubscriptionAccounts = {
     school: course.school,
-    course: courseAddress,
+    course: studentSubscriptionData.course,
     subscription: studentSubscriptionAddress,
     signer: wallet.publicKey,
   }
 
-  const transaction = await program.methods.studentSubscription(name)
+  const transaction = await program.methods.studentSubscription(
+    studentSubscriptionData.name,
+    studentSubscriptionData.availability,
+    studentSubscriptionData.skills,
+    studentSubscriptionData.interests
+  )
     .accounts(studentSubscriptionAccounts)
     .transaction();
 

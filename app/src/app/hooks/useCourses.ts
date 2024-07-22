@@ -1,6 +1,6 @@
 'use client'
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CourseAccountData, Infos, CourseData, SessionData } from "~/app/types/educhain";
+import { CourseData, SessionData, StudentSubscriptionDataAccount } from "~/app/types/educhain";
 import { useProgram } from "../components/solana/solana-provider";
 import { PublicKey } from "@solana/web3.js";
 import {
@@ -78,8 +78,8 @@ export function useCourses(params: UseCoursesParams) {
    });
 
    const enrollCourseMutation = useMutation({
-     mutationFn: (courseAddress: PublicKey) =>
-       subscribeToCourse(program, wallet, courseAddress, ""),
+     mutationFn: (studentSubscriptionData: StudentSubscriptionDataAccount) =>
+       subscribeToCourse(program, wallet, studentSubscriptionData),
      onSuccess: () => {
        queryClient.invalidateQueries({queryKey: ["courses"]});
      },

@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/educhain.json`.
  */
 export type Educhain = {
-  "address": "EQTpUfQNeenySvPPvwYw9rfyjC6gPNhnR7YikL8Y41m9",
+  "address": "BMuxBtE1aJ8dJdjjXybV81iYUiR4ribMuc6HALfEYSBH",
   "metadata": {
     "name": "educhain",
     "version": "0.1.0",
@@ -55,6 +55,77 @@ export type Educhain = {
           }
         },
         {
+          "name": "requestingStudent",
+          "writable": true
+        },
+        {
+          "name": "requestingStudentSubscription",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  98,
+                  115,
+                  99,
+                  114,
+                  105,
+                  112,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course"
+              },
+              {
+                "kind": "account",
+                "path": "swap_request.student",
+                "account": "groupSwapRequestDataAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "requestingStudentGroup",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  114,
+                  111,
+                  117,
+                  112
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course.school",
+                "account": "courseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "course.id",
+                "account": "courseDataAccount"
+              },
+              {
+                "kind": "account",
+                "path": "requesting_student_group.id",
+                "account": "groupDataAccount"
+              }
+            ]
+          }
+        },
+        {
           "name": "swapRequest",
           "writable": true,
           "pda": {
@@ -99,7 +170,41 @@ export type Educhain = {
           "signer": true
         },
         {
+          "name": "signerSubscription",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  117,
+                  98,
+                  115,
+                  99,
+                  114,
+                  105,
+                  112,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "course"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
           "name": "signerGroup",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -934,6 +1039,20 @@ export type Educhain = {
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "availability",
+          "type": "u8"
+        },
+        {
+          "name": "skills",
+          "type": {
+            "vec": "string"
+          }
+        },
+        {
+          "name": "interests",
+          "type": "string"
         }
       ]
     },
@@ -1092,13 +1211,33 @@ export type Educhain = {
     },
     {
       "code": 6002,
+      "name": "exceedingMaximumSkills",
+      "msg": "Exceeding maximum skills count"
+    },
+    {
+      "code": 6003,
       "name": "onlyCourseAdminCanCreateGroup",
       "msg": "Only a course admin can create a group"
     },
     {
-      "code": 6003,
+      "code": 6004,
       "name": "studentIsMemberOfAnotherGroup",
       "msg": "Student is member of another group"
+    },
+    {
+      "code": 6005,
+      "name": "invalidStudentConstraint",
+      "msg": "Invalid student"
+    },
+    {
+      "code": 6006,
+      "name": "invalidGroupConstraint",
+      "msg": "Invalid group"
+    },
+    {
+      "code": 6007,
+      "name": "invalidCourseConstraint",
+      "msg": "Invalid course"
     }
   ],
   "types": [
@@ -1272,6 +1411,20 @@ export type Educhain = {
           {
             "name": "active",
             "type": "bool"
+          },
+          {
+            "name": "availability",
+            "type": "u8"
+          },
+          {
+            "name": "skills",
+            "type": {
+              "vec": "string"
+            }
+          },
+          {
+            "name": "interests",
+            "type": "string"
           }
         ]
       }

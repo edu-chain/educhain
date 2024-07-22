@@ -505,3 +505,19 @@ export async function signAttendance(
 
   sendTransation(transaction, signer);
 }
+
+export async function getStudentsFromCourse(
+  program: Program<Educhain>,
+  courseAddress: PublicKey
+) : Promise<Infos<StudentSubscriptionDataAccount>[]> {
+  const subscriptions = await program.account.studentSubscriptionDataAccount.all([
+    {
+      memcmp: {
+        offset: 8,
+        bytes: courseAddress.toBase58(),
+      },
+    },
+  ]);
+
+  return subscriptions;
+}

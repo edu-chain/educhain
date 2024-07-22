@@ -63,7 +63,7 @@ function MockCourse() {
       <div
         className={css({ position: "fixed", bottom: "24px", right: "24px" })}
       >
-        <Link href={`/course/${courseData.id}/create-groups`}>
+        <Link href={`/admin/create-groups/`}>
           <Button
             variant="outline"
             size="lg">
@@ -226,7 +226,6 @@ function CreateSession(course: Infos<CourseData>) {
 
 
 function CoursePage() {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [course, setCourse] = useState<Infos<CourseData> | null>(null);
 
   const { slug } = useParams();
@@ -248,9 +247,18 @@ function CoursePage() {
   return (
     course ? (
       <>
-        <MockCourse />
-        <Divider />
         <CourseContent {...course} />
+        <div
+          className={css({ position: "fixed", bottom: "24px", right: "24px" })}
+        >
+          <Link href={`/admin/create-groups/${course.publicKey.toBase58()}`}>
+            <Button
+            variant="outline"
+            size="lg">
+            Create Groups
+          </Button>
+          </Link>
+        </div>
       </>
     ) : (
       <div>Loading...</div>

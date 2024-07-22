@@ -2,40 +2,34 @@
 
 import { useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
-import { getCoursesInfos } from "@api/educhain";
-import { CourseData, Infos } from "~/app/types/educhain";
-
-import { useProgram } from "~/app/components/solana/solana-provider";
-import AdminCourseCard from "~/app/components/cards/adminCourseCard";
+import { useProgramProvider } from "~/app/context/blockchain";
 import Loading from "~/app/components/loading";
+import AdminCourseCard from "~/app/components/cards/adminCourseCard";
 
 export default function AdminCoursesList({schoolAddress}: {schoolAddress: PublicKey}) {
-
-  const program = useProgram();
-  const [courses, setCourses] = useState<Infos<CourseData>[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { CourseContext } = useProgramProvider();
+  const { courses, isLoading, error } = CourseContext;
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      const courses = await getCoursesInfos(program, schoolAddress);
-      setCourses(courses);
-      setIsLoading(false);
-    };
-    fetchCourses();
-  }, []);
+    CourseContext.selectCourse(schoolAddress);
+  }, [schoolAddress]);
+
+  if (error) {
+    return <div>{error.toString()}</div>;
+  }
 
   return (
     <>
-    {
-    isLoading ?
-    <Loading />
-      : 
-      <> {
-        courses.map((course, index) => (
-          <AdminCourseCard key={index} {...course} />
-        ))}
-      </>
-    }
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <>
+          {" "}
+          {courses?.map((course, index) => (
+            <AdminCourseCard key={index} {...course} />
+          ))}
+        </>
+      )}
     </>
   );
 }

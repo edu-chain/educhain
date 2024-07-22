@@ -7,27 +7,25 @@ import * as Dialog from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input";
 import { useProgram } from "../solana/solana-provider";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useProgramProvider } from "~/app/context/blockchain";
 
 function CreateSchoolModal() {
-
   const { CreateSchoolModalContext } = useModalsProvider();
   const { open, setOpen } = CreateSchoolModalContext;
 
-  const program = useProgram();
-  const wallet = useWallet();
-
+  const { SchoolContext } = useProgramProvider();
 
   const createSchool = async (name: string) => {
-    await createSchoolDataAccount(program, wallet, name);
+    await SchoolContext.createSchool(name);
     setOpen(false);
-  }
+  };
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = new FormData(e.target as HTMLFormElement);
     const name = data.get("name") as string;
     createSchool(name);
-  }
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={() => setOpen(false)}>

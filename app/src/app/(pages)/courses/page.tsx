@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { vstack, hstack, grid } from "styled-system/patterns"
+import { hstack, grid } from "styled-system/patterns"
 import { useProgramProvider } from '~/app/context/blockchain'
 import Loading from '~/app/components/loading'
 import { css } from 'styled-system/css'
@@ -13,13 +13,13 @@ import { Book } from "lucide-react"
 export default function CoursesPage() {
   const wallet = useWallet()
   const { CourseContext } = useProgramProvider()
-  const { courses, isLoading, error, selectCourse } = CourseContext
+  const { courses, isLoading, error, enrollCourse } = CourseContext
 
   useEffect(() => {
     if (wallet.publicKey) {
-      selectCourse(null) // Reset course selection when the page loads
+      CourseContext.fetchAllCoursesExcludingStudentCourses(wallet.publicKey)
     }
-  }, [wallet.publicKey, selectCourse])
+  }, [wallet.publicKey])
 
   if (isLoading) return <Loading />
   if (error) return <div>Error: {error.toString()}</div>
@@ -55,6 +55,21 @@ export default function CoursesPage() {
                   className={css({ color: "blue.500", width: 6, height: 6 })}
                 />
                 {course.account.name}
+                <div className={css({ marginLeft: "auto" })}>
+                  <Badge
+                    variant="outline"
+                    size="lg"
+                    onClick={() => enrollCourse(course.publicKey)}
+                    className={css({
+                      cursor: "pointer",
+                      "&:hover": {
+                        bg: "lightyellow",
+                      },
+                    })}
+                  >
+                    Enroll
+                  </Badge>
+                </div>
               </Card.Title>
             </Card.Header>
             <Card.Body>

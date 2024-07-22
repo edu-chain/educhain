@@ -9,6 +9,8 @@ import {
   getSessionsInfosFromCourse,
   createSessionDataAccount,
   getCoursesInfosFromSchool,
+  getCoursesExcludingStudentCourses,
+  subscribeToCourse,
 } from "@api/educhain";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCallback } from "react";
@@ -16,7 +18,8 @@ import { useCallback } from "react";
 export type UseCoursesParams =
   | { type: 'all' }
   | { type: 'fromSchool', publicKey: PublicKey }
-  | { type: 'fromStudent', publicKey: PublicKey };
+  | { type: 'fromStudent', publicKey: PublicKey }
+  | { type: 'coursesExcludingStudent', publicKey: PublicKey };
 
 export function useCourses(params: UseCoursesParams) {
   const queryClient = useQueryClient()
@@ -31,6 +34,8 @@ export function useCourses(params: UseCoursesParams) {
            return getCoursesInfosFromSchool(program, params.publicKey);
          case 'fromStudent':
            return getCoursesInfosFromStudent(program, params.publicKey);
+         case 'coursesExcludingStudent':
+           return getCoursesExcludingStudentCourses(program, params.publicKey);
          case 'all':
          default:
            return program.account.courseDataAccount.all();
@@ -39,8 +44,13 @@ export function useCourses(params: UseCoursesParams) {
      enabled: !!program,
    });
 
-   const fetchCoursesBySchool = useCallback(
-     async (schoolAddress: PublicKey) => {
+   const fetchCourses = useCallback(async () => {
+     const courses = await program.account.courseDataAccount.all();
+     queryClient.setQueryData(["courses"], courses);
+   }, [program, queryClient]
+  );
+
+   const fetchCoursesBySchool = useCallback(async (schoolAddress: PublicKey) => {
        const courses = await getCoursesInfosFromSchool(program, schoolAddress);
        queryClient.setQueryData(["courses", schoolAddress.toString()], courses);
      },
@@ -50,11 +60,26 @@ export function useCourses(params: UseCoursesParams) {
    const fetchCoursesByStudent = useCallback(async (studentAddress: PublicKey) => {
      const courses = await getCoursesInfosFromStudent(program, studentAddress);
      queryClient.setQueryData(["courses", studentAddress.toString()], courses);
-   }, [program, queryClient]);
+   }, [program, queryClient]
+  );
+  
 
+    const fetchAllCoursesExcludingStudentCourses = useCallback(async (studentAddress: PublicKey) => {
+      const courses = await getCoursesExcludingStudentCourses(program, studentAddress);
+      queryClient.setQueryData(["coursesExcludingStudent", studentAddress.toString()], courses);
+    }, [program, queryClient]);
+  
    const createCourseMutation = useMutation({
      mutationFn: (courseData: CourseData) =>
        createCourseDataAccount(program, wallet, courseData),
+     onSuccess: () => {
+       queryClient.invalidateQueries({queryKey: ["courses"]});
+     },
+   });
+
+   const enrollCourseMutation = useMutation({
+     mutationFn: (courseAddress: PublicKey) =>
+       subscribeToCourse(program, wallet, courseAddress, ""),
      onSuccess: () => {
        queryClient.invalidateQueries({queryKey: ["courses"]});
      },
@@ -84,6 +109,9 @@ export function useCourses(params: UseCoursesParams) {
      fetchCoursesBySchool,
      fetchSessionsByCourse,
      fetchCoursesByStudent,
+     fetchCourses,
+     fetchAllCoursesExcludingStudentCourses,
+     enrollCourse: enrollCourseMutation.mutate,
      createSession: createSessionMutation.mutate,
    };
 }

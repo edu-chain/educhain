@@ -65,11 +65,8 @@ export default function StudentCourseList() {
             fontWeight: 'bold',
             marginBottom: '4',
           })}>
-            You haven't enrolled in any courses yet
+            {"You haven't enrolled in any courses yet"}
           </h2>
-          <Button onClick={() => router.push('/courses')} size="lg">
-            Find New Courses
-          </Button>
         </div>
       )}
       <div className={css({
